@@ -1,0 +1,34 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(pkill -f \"next dev\")",
+      "Bash(grep -o \"https://lh3\\\\.googleusercontent\\\\.com/aida-public/[^\\\\\"]*\" src/**/*.tsx)",
+      "Read(//private/tmp/**)",
+      "Bash(grep:*)",
+      "Bash(find src:*)",
+      "Bash(chmod +x /tmp/download_images.sh)",
+      "Bash(/tmp/download_images.sh)",
+      "Bash(curl -s http://localhost:3001/image)",
+      "Bash(ls -lh /Users/axin/localproject/eleai-studio/public/images/*.jpg)",
+      "Bash(xargs kill:*)",
+      "Read(//root/**)",
+      "Read(//Users/axin/localproject/**)",
+      "WebFetch(domain:stitch.withgoogle.com)",
+      "Bash(curl -s \"https://stitch.withgoogle.com/projects/11832400067934146545\")",
+      "Bash(curl -s https://stitch.withgoogle.com/docs/mcp/setup)",
+      "Bash(curl:*)",
+      "Bash(lsof -ti:3001 -ti:3000)",
+      "Bash(ls -la *.jpg)",
+      "Bash(kill 78664 78665)",
+      "WebFetch(domain:github.com)",
+      "Bash(qmd collection:*)",
+      "Bash(qmd context:*)",
+      "Bash(qmd embed:*)",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m 'Initial commit:*)"
+    ]
+  }
+}

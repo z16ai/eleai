@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>eleAI Studio - Image Studio</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&amp;family=Manrope:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#d8e2ff",
+              "secondary": "#504dcd",
+              "on-surface": "#2c333d",
+              "tertiary-container": "#ce6ffd",
+              "error-container": "#fe8983",
+              "on-error": "#fff7f6",
+              "on-primary-fixed": "#003d85",
+              "error-dim": "#4e0309",
+              "surface-bright": "#f9f9fe",
+              "tertiary-fixed-dim": "#bf62ee",
+              "on-tertiary-container": "#2f0046",
+              "outline": "#747b86",
+              "on-primary-fixed-variant": "#0058bb",
+              "surface-tint": "#005bc1",
+              "on-secondary-fixed": "#2d27ad",
+              "surface": "#f9f9fe",
+              "inverse-primary": "#4b8eff",
+              "surface-container": "#ebeef7",
+              "surface-dim": "#d3dae9",
+              "primary-dim": "#004faa",
+              "on-error-container": "#752121",
+              "surface-container-lowest": "#ffffff",
+              "inverse-surface": "#0c0e12",
+              "tertiary-dim": "#801eb0",
+              "surface-container-high": "#e4e8f3",
+              "on-surface-variant": "#595f6a",
+              "on-background": "#2c333d",
+              "secondary-dim": "#4340c1",
+              "on-tertiary-fixed": "#000000",
+              "on-tertiary": "#fff7fc",
+              "on-primary": "#f7f7ff",
+              "on-secondary-fixed-variant": "#4c49c9",
+              "on-tertiary-fixed-variant": "#3f005b",
+              "secondary-fixed": "#e2dfff",
+              "primary": "#005bc1",
+              "outline-variant": "#acb2bf",
+              "inverse-on-surface": "#9c9da1",
+              "primary-fixed-dim": "#c2d4ff",
+              "on-primary-container": "#004ea8",
+              "on-secondary": "#fbf7ff",
+              "background": "#f9f9fe",
+              "secondary-fixed-dim": "#d2d0ff",
+              "surface-variant": "#dce3f0",
+              "surface-container-highest": "#dce3f0",
+              "secondary-container": "#e2dfff",
+              "primary-fixed": "#d8e2ff",
+              "error": "#9f403d",
+              "tertiary-fixed": "#ce6ffd",
+              "tertiary": "#8e2fbd",
+              "on-secondary-container": "#423ebf",
+              "surface-container-low": "#f2f3fa"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .masonry-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-auto-rows: 10px;
+            gap: 2rem;
+        }
+        .masonry-item {
+            grid-row-end: span 30;
+        }
+        .masonry-item-tall {
+            grid-row-end: span 45;
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface antialiased">
+<!-- Sidebar Navigation Shell -->
+<aside class="fixed left-0 top-0 h-full w-20 flex flex-col items-center py-8 gap-8 bg-slate-50 dark:bg-slate-950 font-manrope text-sm font-medium z-50">
+<!-- Logo Area -->
+<div class="flex flex-col items-center gap-1">
+<span class="text-blue-600 font-black text-2xl tracking-tighter">e.</span>
+</div>
+<!-- Navigation Cluster -->
+<nav class="flex-1 flex flex-col items-center gap-6 mt-4">
+<!-- Active: Image Studio -->
+<button class="bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-xl p-3 translate-x-1 duration-300 group">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">image</span>
+</button>
+<button class="text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-300 transition-all p-3 group">
+<span class="material-symbols-outlined">movie</span>
+</button>
+<button class="text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-300 transition-all p-3 group">
+<span class="material-symbols-outlined">graphic_eq</span>
+</button>
+</nav>
+<!-- Footer Cluster -->
+<div class="flex flex-col items-center gap-6">
+<div class="flex flex-col items-center text-[10px] font-bold text-blue-600/60 leading-none mb-2">
+<span>942</span>
+<span class="text-[8px] uppercase tracking-widest mt-1">Credits</span>
+</div>
+<button class="text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-300 transition-all">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-surface-container">
+<img alt="Profile" class="w-full h-full object-cover" data-alt="portrait of a professional creative designer with soft studio lighting and neutral background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB7GgYP9bZ0nOaLzn3dr0YE1rhJqLfvOoT28ywld27z-Y5QdenrtMjIU7aeFayeh_ol5E-p9zhZfPf2SAdiVBAk_27HgT7yu6lK78U020FETNaVN7gc4pztU80kW2PccH547rAzwTkXDKwsn2dFZ9FsWvrQGcwrbfWsvmE96Tl004lSrny_GntBfhvECqPqrazKI-BHwe55JYvKAp6TfkSnaX9NR0FttIT5PiyXzh7_8DrgHatwyMuAglxz6xs7Olkcd2sAXETWyzVd"/>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-20 min-h-screen px-12 pt-12 pb-48">
+<!-- Header / Breadcrumbs Area -->
+<header class="mb-12 flex justify-between items-end">
+<div>
+<p class="font-headline text-sm font-semibold text-primary tracking-tight mb-1 uppercase">Workbench</p>
+<h1 class="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">Image Studio</h1>
+</div>
+<div class="flex items-center gap-4">
+<button class="flex items-center gap-2 px-4 py-2 bg-surface-container-low hover:bg-surface-container-high transition-colors rounded-md text-sm font-medium">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                    Refine Grid
+                </button>
+</div>
+</header>
+<!-- Waterfall Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+<!-- Grid Item 1 -->
+<div class="flex flex-col gap-4 group">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-[3/4]">
+<img alt="Abstract art" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="flowing 3D abstract shapes in shades of cerulean blue and violet with soft matte lighting and depth of field" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDiJK2PBIS3Xw7SI4HvEvR5st-JqZTyid-ZmYrImZjCS7-YYgkoGxeRMGGmrZtImkBf8TMEKaI5lmeKFJdao6VNS_6A8O5XYgVzEgoFiVQvWngwy8FcwMNcBPEj-EKU2pf_xnGB7gRfJV9Y9gg7HPXnIFbGXrBkbLJcVbmE_Uq0vJ5mXKciyF8mJ-xJcleFb7ayQ06efe1iq1rILr-0OoMinZL4GrnGd67cPzJaDq3bsLoteLm9RaqketNycXSVrNkQD6WzZ5y0KEya"/>
+<div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 duration-300 gap-3">
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg">
+<span class="material-symbols-outlined text-xl">download</span>
+</button>
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg">
+<span class="material-symbols-outlined text-xl">refresh</span>
+</button>
+</div>
+<div class="absolute top-4 right-4 glass-panel px-2 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">crop_3_2</span>
+<span class="text-[10px] font-bold">3:4</span>
+</div>
+</div>
+<div>
+<p class="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed">"Hyper-realistic architectural interior of a glass sanctuary surrounded by a digital forest at dusk..."</p>
+</div>
+</div>
+<!-- Grid Item 2 -->
+<div class="flex flex-col gap-4 group">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-square">
+<img alt="Creative visual" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="minimalist geometric glass spheres floating over a mirror-like desert floor during sunrise with long shadows" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDXcOt78pYiO2Oc7ZD8P-ZU76b9KqCGffMK56qk1V1wsap8X7HwzvKeVbrQhJez299-x7JXb4Qvkds99tz3on1oESREqd-gHjBVn7WnidO_-8_7ltqQx1_q_M9c9mGV8JeiMOXmScdFkiHJrl03ndIvgKBDuhFzbGB4ppYRrNiMSQ5SHKLK8Cgo9b3CQKBxhLRCxbEYDvFJM2KwqES90TrxC03hiQ7OZPWT-zDnMe599BURnQCapmuFfHXzxaVb4FAFn3ZF2Ay3EEPp"/>
+<div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 duration-300 gap-3">
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg">
+<span class="material-symbols-outlined text-xl">download</span>
+</button>
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg">
+<span class="material-symbols-outlined text-xl">refresh</span>
+</button>
+</div>
+<div class="absolute top-4 right-4 glass-panel px-2 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">crop_square</span>
+<span class="text-[10px] font-bold">1:1</span>
+</div>
+</div>
+<div>
+<p class="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed">"Soft pastel minimalism, floating translucent spheres in a silent white space, studio lighting..."</p>
+</div>
+</div>
+<!-- Grid Item 3 -->
+<div class="flex flex-col gap-4 group">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-[16/9]">
+<img alt="Cinematic shot" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="cinematic wide shot of a futuristic neon-lit city street under heavy rainfall with reflective puddles" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAssItVkQoRgsIYj166HOysAxjT7bwa3AE-dFBCupSLKUJqo-6Cupp6sv-ttmWVw54Iik_4nuYxv5RpunLRIWVNi70ZRmPWaZcBV4gKiaKqsLeVYpTbz0CXWrw9kUtUBgxZFc13zjVqzM1wkRrqJBoBephuC6Lc_B4VH8i8U5NYmYFL3xOaK9eiI3puJQyRDEDvAnmhkZKeVJDbhsbPw8dI6GBgEs7JTbULzT8uaLsu3HnClk2YqSJBOHUwX3wdfLTDaILMhX1B7UkV"/>
+<div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 duration-300 gap-3">
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg">
+<span class="material-symbols-outlined text-xl">download</span>
+</button>
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg">
+<span class="material-symbols-outlined text-xl">refresh</span>
+</button>
+</div>
+<div class="absolute top-4 right-4 glass-panel px-2 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">crop_16_9</span>
+<span class="text-[10px] font-bold">16:9</span>
+</div>
+</div>
+<div>
+<p class="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed">"Cyberpunk street scene at night, heavy rain, glowing blue and magenta signage, 8k resolution, cinematic grain..."</p>
+</div>
+</div>
+<!-- Grid Item 4 -->
+<div class="flex flex-col gap-4 group">
+<div class="relative overflow-hidden rounded-xl bg-surface-container-low aspect-[4/5]">
+<img alt="Organic form" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" data-alt="macro close-up of iridescent butterfly wings with microscopic texture and shifting rainbow colors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-Gn61eUrL41s6Jd0oXYFtRXXhrZTVzBGGQsfx_fUSttMJbNnbmk8GcR4qNUM32n6uwMx4QVKx_cpEg7d3Qyv51A_W-3XgChqx8W2TBN1HbQoba8uKalBjL-lXS2xaWV7u5CAUK6xXTXJCf3M00GqHoCVpWNusI8T9-Ymk2yinqQO1DBtLV73cJ6iRUTiRrJpz5hbJNIIvYqkmEr29rXdddOF6xvkxhUrhjMTSh6qcwbE9nIR5urJTqFwAZnUJMHX837Rt9XLkVd56"/>
+<div class="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 duration-300 gap-3">
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg">
+<span class="material-symbols-outlined text-xl">download</span>
+</button>
+<button class="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg">
+<span class="material-symbols-outlined text-xl">refresh</span>
+</button>
+</div>
+<div class="absolute top-4 right-4 glass-panel px-2 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
+<span class="material-symbols-outlined text-[14px]">crop_3_2</span>
+<span class="text-[10px] font-bold">4:5</span>
+</div>
+</div>
+<div>
+<p class="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed">"Iridescent organic texture, liquid mercury meeting pearlescent cream, soft macro focus..."</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Interface Layer -->
+<div class="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6 flex flex-col items-center gap-4 z-[100]">
+<!-- Contextual Popover (Above Bar) -->
+<div class="w-fit glass-panel rounded-xl shadow-2xl p-1.5 flex items-center gap-1 scale-95 origin-bottom animate-in fade-in slide-in-from-bottom-4 duration-500">
+<div class="flex items-center gap-1 px-1 border-r border-outline-variant/15 mr-1">
+<button class="px-3 py-1.5 rounded-lg bg-primary-container text-on-primary-container text-xs font-bold transition-all">1:1</button>
+<button class="px-3 py-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant text-xs font-medium transition-all">16:9</button>
+<button class="px-3 py-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant text-xs font-medium transition-all">4:5</button>
+<button class="px-3 py-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant text-xs font-medium transition-all">9:16</button>
+</div>
+<div class="flex items-center gap-1 px-1">
+<button class="px-3 py-1.5 rounded-lg hover:bg-surface-container-high text-on-surface-variant text-xs font-medium transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">hd</span>
+                    2K
+                </button>
+<button class="px-3 py-1.5 rounded-lg bg-surface-container-high text-on-surface font-bold text-xs transition-all flex items-center gap-1.5">
+<span class="material-symbols-outlined text-sm">4k</span>
+                    4K
+                </button>
+</div>
+</div>
+<!-- Primary Input Bar -->
+<div class="w-full glass-panel rounded-2xl shadow-2xl flex items-center p-2 pl-4 gap-4 ring-1 ring-white/50">
+<button class="w-10 h-10 flex items-center justify-center rounded-xl bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-2 rounded-xl bg-surface-container text-on-surface font-semibold text-xs whitespace-nowrap">
+<span class="material-symbols-outlined text-[16px] text-primary">auto_awesome</span>
+                Image 5.0 Lite
+                <span class="material-symbols-outlined text-[14px] opacity-50">expand_more</span>
+</button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium" placeholder="Describe your vision..." type="text"/>
+<button class="w-12 h-12 flex items-center justify-center rounded-xl bg-primary text-on-primary shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all group active:scale-95">
+<span class="material-symbols-outlined group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Hidden Footer Branding -->
+<footer class="fixed bottom-0 right-0 p-8 z-0">
+<p class="font-manrope text-[10px] font-bold text-outline-variant uppercase tracking-[0.2em] opacity-30 select-none">eleAI Studio // The Digital Curator</p>
+</footer>
+</body></html>

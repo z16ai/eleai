@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;family=Inter:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#d8e2ff",
+              "secondary": "#504dcd",
+              "on-surface": "#2c333d",
+              "tertiary-container": "#ce6ffd",
+              "error-container": "#fe8983",
+              "on-error": "#fff7f6",
+              "on-primary-fixed": "#003d85",
+              "error-dim": "#4e0309",
+              "surface-bright": "#f9f9fe",
+              "tertiary-fixed-dim": "#bf62ee",
+              "on-tertiary-container": "#2f0046",
+              "outline": "#747b86",
+              "on-primary-fixed-variant": "#0058bb",
+              "surface-tint": "#005bc1",
+              "on-secondary-fixed": "#2d27ad",
+              "surface": "#f9f9fe",
+              "inverse-primary": "#4b8eff",
+              "surface-container": "#ebeef7",
+              "surface-dim": "#d3dae9",
+              "primary-dim": "#004faa",
+              "on-error-container": "#752121",
+              "surface-container-lowest": "#ffffff",
+              "inverse-surface": "#0c0e12",
+              "tertiary-dim": "#801eb0",
+              "surface-container-high": "#e4e8f3",
+              "on-surface-variant": "#595f6a",
+              "on-background": "#2c333d",
+              "secondary-dim": "#4340c1",
+              "on-tertiary-fixed": "#000000",
+              "on-tertiary": "#fff7fc",
+              "on-primary": "#f7f7ff",
+              "on-secondary-fixed-variant": "#4c49c9",
+              "on-tertiary-fixed-variant": "#3f005b",
+              "secondary-fixed": "#e2dfff",
+              "primary": "#005bc1",
+              "outline-variant": "#acb2bf",
+              "inverse-on-surface": "#9c9da1",
+              "primary-fixed-dim": "#c2d4ff",
+              "on-primary-container": "#004ea8",
+              "on-secondary": "#fbf7ff",
+              "background": "#f9f9fe",
+              "secondary-fixed-dim": "#d2d0ff",
+              "surface-variant": "#dce3f0",
+              "surface-container-highest": "#dce3f0",
+              "secondary-container": "#e2dfff",
+              "primary-fixed": "#d8e2ff",
+              "error": "#9f403d",
+              "tertiary-fixed": "#ce6ffd",
+              "tertiary": "#8e2fbd",
+              "on-secondary-container": "#423ebf",
+              "surface-container-low": "#f2f3fa"
+            },
+            fontFamily: {
+              "headline": ["Manrope"],
+              "body": ["Inter"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+      }
+      .waveform-bar {
+        transition: height 0.2s ease-in-out;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+      }
+      .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #acb2bf33;
+        border-radius: 10px;
+      }
+    </style>
+</head>
+<body class="bg-surface font-body text-on-surface flex min-h-screen overflow-hidden">
+<!-- SideNavBar (Shared Component) -->
+<aside class="fixed left-0 top-0 h-full flex flex-col items-center py-8 gap-8 bg-slate-50 dark:bg-slate-950 w-20 border-r-0 z-50">
+<div class="flex flex-col items-center gap-2">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1;">cloud_queue</span>
+</div>
+<span class="font-manrope text-[10px] font-black text-blue-600 uppercase tracking-widest">Workbench</span>
+</div>
+<nav class="flex flex-col gap-6 mt-8 flex-1">
+<button class="p-3 text-slate-500 hover:text-blue-500 transition-all translate-x-1 duration-300">
+<span class="material-symbols-outlined text-2xl">image</span>
+</button>
+<button class="p-3 text-slate-500 hover:text-blue-500 transition-all translate-x-1 duration-300">
+<span class="material-symbols-outlined text-2xl">movie</span>
+</button>
+<!-- Active Tab: Audio Lab -->
+<button class="p-3 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-xl translate-x-1 duration-300">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">graphic_eq</span>
+</button>
+</nav>
+<div class="flex flex-col gap-6 mt-auto">
+<button class="p-3 text-slate-500 hover:text-blue-500 transition-all">
+<span class="material-symbols-outlined text-2xl">settings</span>
+</button>
+<div class="w-10 h-10 rounded-full overflow-hidden border-2 border-surface-container">
+<img class="w-full h-full object-cover" data-alt="professional headshot of a creative director in a minimalist studio setting with soft lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCeE4QrwnP6wPzd_gFVrtPaKeLluct0k5fiKwH_R-ztvMJBCn8VMvUbQqzPVS43vHTy2GydLbO-6-leC_iypS5tB_HT522DRrEvCZbGHx6QK83vO_GKt7UFNpXNybwg1bmJSCmX_H0gicM227kkdTWYBWcsg3SNJGIr9ivTREWYDAsBPjgq92Ck9YdUuktdJtFhdkeWUSenJbCN3ckNHo4G1ZbRb1WoNA4Y1CnA6BcqDysZhK8jJujwSon2pNpeX4ANPyxUmphUYc6w"/>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-20 flex-1 flex flex-col relative h-screen bg-surface-container-low overflow-y-auto custom-scrollbar pb-32">
+<!-- Header -->
+<header class="w-full px-12 pt-10 pb-6 flex justify-between items-end">
+<div>
+<div class="flex items-center gap-2 mb-2">
+<span class="text-xs font-semibold tracking-widest text-primary uppercase">Audio Lab</span>
+<span class="h-[1px] w-8 bg-primary/30"></span>
+</div>
+<h1 class="text-4xl font-headline font-extrabold tracking-tighter text-on-surface">Digital Voices</h1>
+</div>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 rounded-md bg-surface-container-lowest text-on-surface-variant text-sm font-semibold shadow-sm hover:bg-white transition-colors flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">history</span>
+                    Recent
+                </button>
+<button class="px-5 py-2.5 rounded-md bg-primary text-on-primary text-sm font-bold shadow-md hover:bg-primary-dim transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">add</span>
+                    New Session
+                </button>
+</div>
+</header>
+<!-- Operation Area: Audio Generation Cards (Bento-ish Grid) -->
+<section class="px-12 grid grid-cols-1 lg:grid-cols-2 gap-8 mt-4">
+<!-- Audio Card 1 -->
+<div class="group bg-surface-container-lowest rounded-xl p-8 flex flex-col gap-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4">
+<span class="material-symbols-outlined text-outline-variant/40 group-hover:text-primary/40 transition-colors">more_vert</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-primary-container flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">person_pin</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-lg text-on-surface">Documentary Narrator</h3>
+<p class="text-xs text-on-surface-variant font-medium">Model: VoiceFlux v2.4 • 48kHz High Fidelity</p>
+</div>
+</div>
+<!-- Waveform Visualizer -->
+<div class="h-24 flex items-end justify-between gap-1 px-2">
+<!-- Fake Waveform bars -->
+<div class="waveform-bar w-full bg-slate-100 rounded-full h-[20%]"></div>
+<div class="waveform-bar w-full bg-slate-100 rounded-full h-[40%]"></div>
+<div class="waveform-bar w-full bg-primary rounded-full h-[60%]"></div>
+<div class="waveform-bar w-full bg-primary rounded-full h-[30%]"></div>
+<div class="waveform-bar w-full bg-primary rounded-full h-[80%]"></div>
+<div class="waveform-bar w-full bg-primary-container rounded-full h-[50%]"></div>
+<div class="waveform-bar w-full bg-primary rounded-full h-[90%]"></div>
+<div class="waveform-bar w-full bg-primary rounded-full h-[40%]"></div>
+<div class="waveform-bar w-full bg-primary rounded-full h-[70%]"></div>
+<div class="waveform-bar w-full bg-primary rounded-full h-[35%]"></div>
+<div class="waveform-bar w-full bg-slate-100 rounded-full h-[60%]"></div>
+<div class="waveform-bar w-full bg-slate-100 rounded-full h-[25%]"></div>
+<div class="waveform-bar w-full bg-slate-100 rounded-full h-[45%]"></div>
+<div class="waveform-bar w-full bg-slate-100 rounded-full h-[15%]"></div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<button class="w-12 h-12 rounded-full bg-primary text-on-primary flex items-center justify-center hover:scale-105 transition-transform">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">play_arrow</span>
+</button>
+<div class="text-sm font-mono text-on-surface-variant">0:45 / 2:12</div>
+</div>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Cinematic</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Deep Bass</span>
+</div>
+</div>
+</div>
+<!-- Audio Card 2 -->
+<div class="group bg-surface-container-lowest rounded-xl p-8 flex flex-col gap-6 transition-all duration-300 hover:shadow-xl hover:-translate-y-1 relative">
+<div class="flex items-center gap-4">
+<div class="w-12 h-12 rounded-lg bg-tertiary-container/20 flex items-center justify-center text-tertiary">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">face_6</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-lg text-on-surface">Marketing Social Clip</h3>
+<p class="text-xs text-on-surface-variant font-medium">Model: FastTalk 1.0 • Low Latency</p>
+</div>
+</div>
+<div class="h-24 flex items-end justify-between gap-1 px-2">
+<div class="waveform-bar w-full bg-slate-100 rounded-full h-[10%]"></div>
+<div class="waveform-bar w-full bg-tertiary rounded-full h-[50%]"></div>
+<div class="waveform-bar w-full bg-tertiary rounded-full h-[80%]"></div>
+<div class="waveform-bar w-full bg-tertiary-container rounded-full h-[40%]"></div>
+<div class="waveform-bar w-full bg-tertiary rounded-full h-[60%]"></div>
+<div class="waveform-bar w-full bg-tertiary rounded-full h-[95%]"></div>
+<div class="waveform-bar w-full bg-tertiary rounded-full h-[30%]"></div>
+<div class="waveform-bar w-full bg-tertiary rounded-full h-[50%]"></div>
+<div class="waveform-bar w-full bg-slate-100 rounded-full h-[20%]"></div>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-4">
+<button class="w-12 h-12 rounded-full border-2 border-tertiary text-tertiary flex items-center justify-center hover:bg-tertiary hover:text-white transition-all">
+<span class="material-symbols-outlined text-2xl">pause</span>
+</button>
+<div class="text-sm font-mono text-on-surface-variant">0:12 / 0:15</div>
+</div>
+<div class="flex gap-2">
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Energetic</span>
+<span class="px-3 py-1 bg-surface-container-high rounded-full text-[10px] font-bold text-on-surface-variant uppercase tracking-wider">Female</span>
+</div>
+</div>
+</div>
+<!-- Empty State / Placeholder Grid Card -->
+<div class="lg:col-span-2 border-2 border-dashed border-outline-variant/30 rounded-xl p-12 flex flex-col items-center justify-center text-center opacity-60 hover:opacity-100 transition-opacity">
+<div class="w-16 h-16 rounded-full bg-surface-container flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-3xl text-outline">audio_file</span>
+</div>
+<p class="font-headline font-semibold text-lg">Convert more text to create entries</p>
+<p class="text-sm text-on-surface-variant mt-1 max-w-xs">Your generated audio files will appear here in high-fidelity formats ready for download.</p>
+</div>
+</section>
+<!-- Floating Input Section (Bottom Center) -->
+<div class="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-3xl px-6 flex flex-col items-center gap-4 z-40">
+<!-- Sound Selection Popover (Above Input) -->
+<div class="glass-effect w-full rounded-2xl p-6 shadow-2xl border border-white/20 flex flex-col gap-4">
+<div class="flex justify-between items-center px-1">
+<h4 class="text-xs font-bold uppercase tracking-widest text-primary">Active Voice Configuration</h4>
+<button class="text-xs text-primary font-bold hover:underline">Manage All</button>
+</div>
+<div class="flex gap-3 overflow-x-auto pb-2 custom-scrollbar">
+<!-- Voice Item -->
+<div class="flex-shrink-0 flex items-center gap-3 p-3 bg-primary-container rounded-xl border border-primary/20">
+<div class="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-sm">check</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-primary-container leading-none">James (Narrator)</p>
+<p class="text-[10px] text-on-primary-container/60 mt-1">Deep, Professional</p>
+</div>
+</div>
+<!-- Voice Item -->
+<div class="flex-shrink-0 flex items-center gap-3 p-3 bg-surface-container rounded-xl hover:bg-surface-container-high cursor-pointer transition-colors">
+<div class="w-8 h-8 rounded-full bg-surface-dim flex items-center justify-center text-on-surface-variant">
+<span class="material-symbols-outlined text-sm">person</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface leading-none">Sarah (Casual)</p>
+<p class="text-[10px] text-on-surface-variant mt-1">Light, Friendly</p>
+</div>
+</div>
+<!-- Clone Button -->
+<button class="flex-shrink-0 flex items-center gap-3 p-3 border-2 border-dashed border-outline-variant/40 rounded-xl hover:bg-white transition-all group">
+<div class="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface leading-none">Clone Sound</p>
+<p class="text-[10px] text-on-surface-variant mt-1">Upload Sample</p>
+</div>
+</button>
+</div>
+</div>
+<!-- Signature Input Bar -->
+<div class="glass-effect w-full h-16 rounded-xl flex items-center px-4 gap-4 shadow-xl border border-white/30">
+<button class="w-10 h-10 rounded-lg flex items-center justify-center text-on-surface-variant hover:bg-surface-container-low transition-colors">
+<span class="material-symbols-outlined">add_circle</span>
+</button>
+<div class="h-6 w-[1px] bg-outline-variant/30"></div>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder-outline-variant font-medium text-sm" placeholder="Text to convert to speech..." type="text"/>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings_voice</span>
+</button>
+<button class="bg-primary text-on-primary h-10 px-6 rounded-md font-bold text-sm shadow-md flex items-center gap-2 hover:bg-primary-dim transition-all">
+<span>Generate</span>
+<span class="material-symbols-outlined text-lg">auto_awesome</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer (Shared Component) -->
+<footer class="fixed bottom-0 right-0 left-20 bg-slate-50 dark:bg-slate-950/20 backdrop-blur-sm py-4 px-12 z-30 border-t border-slate-200/10">
+<div class="flex justify-between items-center max-w-7xl mx-auto">
+<p class="font-inter text-xs tracking-wide text-slate-500">© 2024 eleAI Studio. The Digital Curator.</p>
+<div class="flex gap-6">
+<a class="text-slate-500 hover:text-slate-900 underline underline-offset-4 font-inter text-xs tracking-wide" href="#">Privacy</a>
+<a class="text-slate-500 hover:text-slate-900 underline underline-offset-4 font-inter text-xs tracking-wide" href="#">Terms</a>
+<a class="text-slate-500 hover:text-slate-900 underline underline-offset-4 font-inter text-xs tracking-wide" href="#">API</a>
+</div>
+</div>
+</footer>
+</body></html>
