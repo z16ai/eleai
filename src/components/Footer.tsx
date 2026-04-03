@@ -113,7 +113,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="mt-12 pt-8 border-t border-slate-200/5 max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="font-inter text-xs tracking-wide text-slate-500">© 2024 eleAI Studio. The Digital Curator.</p>
+          <p className="font-inter text-xs tracking-wide text-slate-500">© 2026 eleAI Studio. The Digital Curator.</p>
           <div className="flex gap-4">
             <span className="material-symbols-outlined text-slate-400 text-lg" data-icon="language">
               language

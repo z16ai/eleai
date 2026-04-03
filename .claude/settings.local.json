@@ -28,7 +28,11 @@
       "Bash(qmd embed:*)",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git commit -m 'Initial commit:*)"
+      "Bash(git commit -m 'Initial commit:*)",
+      "Bash(qmd:*)",
+      "WebFetch(domain:www.volcengine.com)",
+      "Bash(node:*)",
+      "Bash(git commit -m 'feat: add Doubao Seedream image models, improve image gallery UX, fix copyright year:*)"
     ]
   }
 }

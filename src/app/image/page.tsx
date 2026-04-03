@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 interface GeneratedImage {
   id: string
@@ -11,6 +11,15 @@ interface GeneratedImage {
   src: string
   alt: string
   createdAt?: number
+  referenceImage?: string
+}
+
+interface GenerationQueueItem {
+  prompt: string
+  modelId: string
+  aspectRatio: string
+  quality: string
+  referenceImage: string | null
 }
 
 const defaultImages: GeneratedImage[] = [
@@ -53,10 +62,13 @@ const defaultImages: GeneratedImage[] = [
 ]
 
 const models = [
-  { id: 'flux-2-klein', name: 'Flux 2 Klein 4B', modelId: 'black-forest-labs/flux.2-klein-4b', description: 'Compact fast generation' },
-  { id: 'flux-2-max', name: 'Flux 2 Max', modelId: 'black-forest-labs/flux.2-max', description: 'Maximum quality output' },
-  { id: 'flux-2-flex', name: 'Flux 2 Flex', modelId: 'black-forest-labs/flux.2-flex', description: 'Balanced flexibility' },
-  { id: 'flux-2-pro', name: 'Flux 2 Pro', modelId: 'black-forest-labs/flux.2-pro', description: 'Professional grade generation' },
+  { id: 'flux-2-klein', name: 'Flux 2 Klein 4B', modelId: 'black-forest-labs/flux.2-klein-4b', description: 'Compact fast generation (OpenRouter)' },
+  { id: 'flux-2-max', name: 'Flux 2 Max', modelId: 'black-forest-labs/flux.2-max', description: 'Maximum quality output (OpenRouter)' },
+  { id: 'flux-2-flex', name: 'Flux 2 Flex', modelId: 'black-forest-labs/flux.2-flex', description: 'Balanced flexibility (OpenRouter)' },
+  { id: 'flux-2-pro', name: 'Flux 2 Pro', modelId: 'black-forest-labs/flux.2-pro', description: 'Professional grade generation (OpenRouter)' },
+  { id: 'doubao-seedream-4-0', name: 'Doubao Seedream 4.0', description: 'Doubao text-to-image (Volcengine)' },
+  { id: 'doubao-seedream-4-5', name: 'Doubao Seedream 4.5', description: 'Doubao text-to-image improved (Volcengine)' },
+  { id: 'doubao-seedream-5-0', name: 'Doubao Seedream 5.0', description: 'Doubao latest text-to-image (Volcengine)' },
 ]
 
 export default function ImageStudio() {
@@ -69,9 +81,73 @@ export default function ImageStudio() {
   const [images, setImages] = useState<GeneratedImage[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
+  const [zoomImage, setZoomImage] = useState<GeneratedImage | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const [generationQueue, setGenerationQueue] = useState<GenerationQueueItem[]>([])
+  const processingRef = useRef(false)
 
   const aspectRatios = ['21:9', '16:9', '3:2', '4:3', '1:1', '3:4', '2:3', '9:16']
   const qualities = ['2K', '4K']
+
+  // Process queue sequentially
+  const processQueue = useCallback(async () => {
+    if (processingRef.current || generationQueue.length === 0) return
+
+    processingRef.current = true
+    const nextItem = generationQueue[0]
+    setGenerationQueue(prev => prev.slice(1))
+    setIsGenerating(true)
+
+    try {
+      const response = await fetch('/api/generate-image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: nextItem.prompt,
+          modelId: nextItem.modelId,
+          aspectRatio: nextItem.aspectRatio,
+          quality: nextItem.quality,
+          referenceImage: nextItem.referenceImage,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success && data.images && data.images.length > 0) {
+        const currentModel = models.find(m => m.id === nextItem.modelId)
+        const newImages = data.images.map((img: any, index: number) => ({
+          id: `gen-${Date.now()}-${index}`,
+          prompt: nextItem.prompt,
+          aspectRatio: nextItem.aspectRatio,
+          quality: nextItem.quality,
+          modelName: currentModel?.name || 'Unknown',
+          src: img.url,
+          alt: nextItem.prompt,
+          createdAt: Date.now(),
+          referenceImage: nextItem.referenceImage || undefined,
+        }))
+        const updatedImages = [...newImages, ...images]
+        // Sort by created time descending (newest first)
+        updatedImages.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        setImages(updatedImages)
+        await saveImagesToServer(updatedImages)
+        // Clear input after successful generation
+        setPrompt('')
+        setReferenceImage(null)
+      } else {
+        console.error('Generation failed:', data.error)
+        alert(`Generation failed: ${data.error || 'Unknown error'}`)
+      }
+    } catch (error) {
+      console.error('Request error:', error)
+      alert(`Request error: ${(error as Error).message}`)
+    } finally {
+      setIsGenerating(false)
+      processingRef.current = false
+      // Process next item in queue
+      setTimeout(processQueue, 0)
+    }
+  }, [generationQueue, images])
 
   // Load image index from server on mount
   useEffect(() => {
@@ -91,6 +167,8 @@ export default function ImageStudio() {
             alt: img.alt,
             createdAt: img.createdAt,
           }))
+          // Sort by created time descending
+          loadedImages.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
           setImages(loadedImages)
         } else {
           // If no saved images, use defaults
@@ -106,6 +184,11 @@ export default function ImageStudio() {
 
     loadImages()
   }, [])
+
+  // Trigger queue processing when queue changes
+  useEffect(() => {
+    processQueue()
+  }, [generationQueue, processQueue])
 
   // Save image index to server when images change
   const saveImagesToServer = async (newImages: GeneratedImage[]) => {
@@ -176,70 +259,49 @@ export default function ImageStudio() {
     setReferenceImage(null)
   }
 
-  const clearAllImages = async () => {
-    setImages(defaultImages)
-    // Clear the server index
-    try {
-      await fetch('/api/images/save', { method: 'DELETE' })
-    } catch (error) {
-      console.error('Failed to clear index:', error)
-    }
-  }
-
-  const generateImage = async () => {
+  const queueGenerate = () => {
     if (!prompt.trim()) return
 
-    setIsGenerating(true)
-    try {
-      const response = await fetch('/api/generate-image', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt,
-          modelId: selectedModel,
-          aspectRatio: selectedRatio,
-          quality: selectedQuality,
-          referenceImage,
-        }),
-      })
-
-      const data = await response.json()
-
-      if (data.success && data.images && data.images.length > 0) {
-        const currentModel = models.find(m => m.id === selectedModel)
-        const newImages = data.images.map((img: any, index: number) => ({
-          id: `gen-${Date.now()}-${index}`,
-          prompt,
-          aspectRatio: selectedRatio,
-          quality: selectedQuality,
-          modelName: currentModel?.name || 'Unknown',
-          src: img.url,
-          alt: prompt,
-          createdAt: Date.now(),
-        }))
-        const updatedImages = [...newImages, ...images]
-        setImages(updatedImages)
-        // Save to server instead of localStorage
-        await saveImagesToServer(updatedImages)
-        setPrompt('')
-        setReferenceImage(null)
-      } else {
-        console.error('Generation failed:', data.error)
-        alert(`Generation failed: ${data.error || 'Unknown error'}`)
-      }
-    } catch (error) {
-      console.error('Request error:', error)
-      alert(`Request error: ${(error as Error).message}`)
-    } finally {
-      setIsGenerating(false)
-    }
+    // Add to queue
+    setGenerationQueue(prev => [...prev, {
+      prompt,
+      modelId: selectedModel,
+      aspectRatio: selectedRatio,
+      quality: selectedQuality,
+      referenceImage,
+    }])
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
-      generateImage()
+      queueGenerate()
     }
+  }
+
+  const copyPrompt = async (prompt: string) => {
+    try {
+      await navigator.clipboard.writeText(prompt)
+      setToastMessage('Copied!')
+      setTimeout(() => setToastMessage(null), 2000)
+    } catch (error) {
+      console.error('Failed to copy:', error)
+    }
+  }
+
+  const regenerateFromImage = (image: GeneratedImage) => {
+    setPrompt(image.prompt)
+    // Find model by name and select it
+    const foundModel = models.find(m => m.name === image.modelName || m.id === image.modelName)
+    if (foundModel) {
+      setSelectedModel(foundModel.id)
+    }
+    setSelectedRatio(image.aspectRatio)
+    setSelectedQuality(image.quality)
+    if (image.referenceImage) {
+      setReferenceImage(image.referenceImage)
+    }
+    // Don't auto-generate, let user edit first
   }
 
   const currentModel = models.find(m => m.id === selectedModel)
@@ -256,20 +318,18 @@ export default function ImageStudio() {
           </h1>
         </div>
         <div className="flex items-center gap-4">
-          <button
-            className="flex items-center gap-2 px-4 py-2 bg-surface-container-low hover:bg-surface-container-high transition-colors rounded-md text-sm font-medium"
-            onClick={clearAllImages}
-          >
-            <span className="material-symbols-outlined text-sm">refresh</span>
-            Reset
-          </button>
+          {generationQueue.length > 0 && (
+            <span className="px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-md">
+              {generationQueue.length} {generationQueue.length === 1 ? 'in queue' : 'in queue'}
+            </span>
+          )}
         </div>
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8">
         {/* Initial loading placeholder */}
         {isLoading && (
-          <div className="flex flex-col gap-4 group animate-pulse col-span-full">
+          <div className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
             <div className="w-full h-32 bg-surface-container-low rounded-xl flex items-center justify-center">
               <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
               <span className="ml-3 text-on-surface-variant">Loading images...</span>
@@ -279,7 +339,7 @@ export default function ImageStudio() {
 
         {/* Loading placeholder when generating */}
         {!isLoading && isGenerating && (
-          <div className="flex flex-col gap-4 group animate-pulse">
+          <div className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
             <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
               <div className="aspect-[1/1] bg-surface-container-high rounded-xl flex items-center justify-center">
                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
@@ -292,63 +352,107 @@ export default function ImageStudio() {
           </div>
         )}
 
-        {!isLoading && images.map((image) => (
-          <div key={image.id} className="flex flex-col gap-4 group">
-            <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
+        {!isLoading && images.map((image) => {
+          return (
+            <div key={image.id} className="flex flex-col gap-4 group break-inside-avoid">
               <div
-                className={`overflow-hidden ${getAspectClass(image.aspectRatio)}`}
+                className="relative overflow-hidden rounded-xl bg-surface-container-low cursor-zoom-in"
+                onClick={() => setZoomImage(image)}
               >
-                <img
-                  alt={image.alt}
-                  className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-                  src={image.src}
-                />
+                <div className={`overflow-hidden ${getAspectClass(image.aspectRatio)}`}>
+                  <img
+                    alt={image.alt}
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    src={image.src}
+                  />
+                </div>
+                {/* Overlay for better click detection */}
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300"></div>
+                {/* Action buttons in top-right corner with background */}
+                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center bg-black/40 backdrop-blur-sm rounded-lg p-1 gap-1">
+                  <a
+                    href={image.src}
+                    download
+                    onClick={(e) => e.stopPropagation()}
+                    className="w-8 h-8 rounded-md flex items-center justify-center text-white hover:bg-black/40 transition-colors"
+                    title="Download"
+                  >
+                    <span className="material-symbols-outlined text-base">download</span>
+                  </a>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      regenerateFromImage(image)
+                    }}
+                    className="w-8 h-8 rounded-md flex items-center justify-center text-white hover:bg-black/40 transition-colors"
+                    title="Regenerate"
+                  >
+                    <span className="material-symbols-outlined text-base">refresh</span>
+                  </button>
+                </div>
               </div>
-              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 duration-300 gap-3">
-                <a
-                  href={image.src}
-                  download
-                  className="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg"
+              <div className="space-y-2">
+                <p
+                  className="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed cursor-pointer hover:text-on-surface transition-colors"
+                  onClick={() => copyPrompt(image.prompt)}
                 >
-                  <span className="material-symbols-outlined text-xl">download</span>
-                </a>
-                <button className="w-10 h-10 rounded-full glass-panel flex items-center justify-center text-on-surface shadow-lg">
-                  <span className="material-symbols-outlined text-xl">refresh</span>
-                </button>
-              </div>
-              <div className="absolute top-4 right-4 glass-panel px-2 py-1 rounded-md flex items-center gap-1.5 shadow-sm">
-                <span className="material-symbols-outlined text-[14px]">
-                  {getIconName(image.aspectRatio)}
-                </span>
-                <span className="text-[10px] font-bold">{image.aspectRatio}</span>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed">
-                &quot;{image.prompt}&quot;
-              </p>
-              {/* Generation metadata */}
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                <span className="px-2 py-1 bg-primary-container/50 text-on-primary-container text-[9px] font-bold rounded-full uppercase tracking-wide">
-                  {image.modelName}
-                </span>
-                <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
-                  {image.aspectRatio}
-                </span>
-                <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
-                  {image.quality}
-                </span>
+                  &quot;{image.prompt}&quot;
+                </p>
+                {/* Generation metadata */}
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="px-2 py-1 bg-primary-container/50 text-on-primary-container text-[9px] font-bold rounded-full uppercase tracking-wide">
+                    {image.modelName}
+                  </span>
+                  <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                    {image.aspectRatio}
+                  </span>
+                  <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                    {image.quality}
+                  </span>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          )
+        })}
       </div>
+
+      {/* Zoom Modal */}
+      {zoomImage && (
+        <div
+          className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4"
+          onClick={() => setZoomImage(null)}
+        >
+          <div className="relative max-w-[90vw] max-h-[90vh]">
+            <img
+              src={zoomImage.src}
+              alt={zoomImage.alt}
+              className="max-w-full max-h-[90vh] object-contain rounded-lg"
+            />
+            <button
+              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
+              onClick={() => setZoomImage(null)}
+            >
+              <span className="material-symbols-outlined">close</span>
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Toast notification */}
+      {toastMessage && (
+        <div className="fixed top-8 left-1/2 -translate-x-1/2 bg-on-surface text-surface px-6 py-3 rounded-lg shadow-2xl z-[300] animate-in fade-in slide-in-from-top-4">
+          <p className="text-sm font-medium">{toastMessage}</p>
+        </div>
+      )}
 
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-4xl px-6 flex flex-col items-center gap-3 z-[100]">
         {/* Configuration Bar */}
         <div className="w-full glass-panel rounded-xl shadow-2xl p-3 flex items-center gap-3 scale-95 origin-bottom animate-in fade-in slide-in-from-bottom-4 duration-500">
           {/* Model Selection */}
-          <div className="relative flex-1 min-w-[180px]">
+          <div
+            className="relative flex-1 min-w-[180px]"
+            onMouseLeave={() => setIsModelOpen(false)}
+          >
             <button
               className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-surface-container-high rounded-lg text-sm font-medium hover:bg-surface-container-highest transition-colors"
               onClick={() => setIsModelOpen(!isModelOpen)}
@@ -364,8 +468,8 @@ export default function ImageStudio() {
                 {models.map((model) => (
                   <button
                     key={model.id}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-primary-container transition-colors ${
-                      selectedModel === model.id ? 'bg-primary-container/50' : ''
+                    className={`w-full text-left px-3 py-2 text-sm hover:bg-primary-container hover:text-on-primary-container transition-colors ${
+                      selectedModel === model.id ? 'bg-primary-container text-on-primary-container' : ''
                     }`}
                     onClick={() => {
                       setSelectedModel(model.id)
@@ -468,14 +572,13 @@ export default function ImageStudio() {
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={handleKeyDown}
-            disabled={isGenerating}
           />
 
           {/* Generate Button */}
           <button
             className="w-12 h-12 flex items-center justify-center rounded-xl bg-primary text-on-primary shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={generateImage}
-            disabled={isGenerating || !prompt.trim()}
+            onClick={queueGenerate}
+            disabled={!prompt.trim()}
           >
             {isGenerating ? (
               <span className="w-6 h-6 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
@@ -490,7 +593,7 @@ export default function ImageStudio() {
 
       <footer className="fixed bottom-0 right-0 p-8 z-0">
         <p className="font-manrope text-[10px] font-bold text-outline-variant uppercase tracking-[0.2em] opacity-30 select-none">
-          eleAI Studio // The Digital Curator
+          © 2026 eleAI Studio // The Digital Curator
         </p>
       </footer>
     </main>
