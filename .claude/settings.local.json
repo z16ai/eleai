@@ -32,7 +32,10 @@
       "Bash(qmd:*)",
       "WebFetch(domain:www.volcengine.com)",
       "Bash(node:*)",
-      "Bash(git commit -m 'feat: add Doubao Seedream image models, improve image gallery UX, fix copyright year:*)"
+      "Bash(git commit -m 'feat: add Doubao Seedream image models, improve image gallery UX, fix copyright year:*)",
+      "Bash(npx tsc:*)",
+      "WebFetch(domain:bailian.console.aliyun.com)",
+      "WebSearch"
     ]
   }
 }

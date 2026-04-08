@@ -39,3 +39,9 @@ next-env.d.ts
 # User generated content
 aigenerate/
 public/aigenerate/
+videogen/
+public/videogen/
+audiogen/
+public/audiogen/
+audioclone/
+public/audioclone/

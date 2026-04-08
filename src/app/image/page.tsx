@@ -85,18 +85,72 @@ export default function ImageStudio() {
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [generationQueue, setGenerationQueue] = useState<GenerationQueueItem[]>([])
   const processingRef = useRef(false)
+  const queueRef = useRef<GenerationQueueItem[]>([])
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  // Keep queueRef always up to date - update immediately
+  queueRef.current = generationQueue
 
   const aspectRatios = ['21:9', '16:9', '3:2', '4:3', '1:1', '3:4', '2:3', '9:16']
   const qualities = ['2K', '4K']
 
+  // Stop current generation
+  const stopGeneration = useCallback(() => {
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+      abortControllerRef.current = null
+    }
+    setGenerationQueue([])
+    setIsGenerating(false)
+    processingRef.current = false
+  }, [])
+
+  // Save image index to server when images change
+  const saveImagesToServer = useCallback(async (newImages: GeneratedImage[]) => {
+    if (newImages.length === 0) return
+
+    try {
+      // Convert to server format with filenames
+      const serverImages = newImages.map(img => {
+        // For user-generated images, extract filename from src
+        const filename = img.src.startsWith('/aigenerate/')
+          ? img.src.substring('/aigenerate/'.length)
+          : ''
+
+        return {
+          id: img.id,
+          prompt: img.prompt,
+          aspectRatio: img.aspectRatio,
+          quality: img.quality,
+          modelName: img.modelName,
+          filename,
+          url: img.src,
+          alt: img.alt,
+          createdAt: img.createdAt || Date.now(),
+        }
+      })
+
+      await fetch('/api/images/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ images: serverImages }),
+      })
+    } catch (error) {
+      console.error('Failed to save images to server:', error)
+    }
+  }, [])
+
   // Process queue sequentially
   const processQueue = useCallback(async () => {
-    if (processingRef.current || generationQueue.length === 0) return
+    if (processingRef.current || queueRef.current.length === 0) return
 
     processingRef.current = true
-    const nextItem = generationQueue[0]
+    const nextItem = queueRef.current[0]
     setGenerationQueue(prev => prev.slice(1))
     setIsGenerating(true)
+
+    const abortController = new AbortController()
+    abortControllerRef.current = abortController
 
     try {
       const response = await fetch('/api/generate-image', {
@@ -109,6 +163,7 @@ export default function ImageStudio() {
           quality: nextItem.quality,
           referenceImage: nextItem.referenceImage,
         }),
+        signal: abortController.signal,
       })
 
       const data = await response.json()
@@ -126,28 +181,35 @@ export default function ImageStudio() {
           createdAt: Date.now(),
           referenceImage: nextItem.referenceImage || undefined,
         }))
-        const updatedImages = [...newImages, ...images]
-        // Sort by created time descending (newest first)
-        updatedImages.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-        setImages(updatedImages)
-        await saveImagesToServer(updatedImages)
+        setImages(prevImages => {
+          const updatedImages = [...newImages, ...prevImages]
+          // Sort by created time descending (newest first)
+          updatedImages.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+          saveImagesToServer(updatedImages)
+          return updatedImages
+        })
         // Clear input after successful generation
         setPrompt('')
         setReferenceImage(null)
-      } else {
+      } else if (!abortController.signal.aborted) {
         console.error('Generation failed:', data.error)
         alert(`Generation failed: ${data.error || 'Unknown error'}`)
       }
     } catch (error) {
-      console.error('Request error:', error)
-      alert(`Request error: ${(error as Error).message}`)
+      if ((error as Error).name !== 'AbortError') {
+        console.error('Request error:', error)
+        alert(`Request error: ${(error as Error).message}`)
+      }
     } finally {
-      setIsGenerating(false)
-      processingRef.current = false
-      // Process next item in queue
-      setTimeout(processQueue, 0)
+      if (!abortController.signal.aborted) {
+        setIsGenerating(false)
+        processingRef.current = false
+        abortControllerRef.current = null
+        // Process next item in queue
+        setTimeout(processQueue, 0)
+      }
     }
-  }, [generationQueue, images])
+  }, [saveImagesToServer])
 
   // Load image index from server on mount
   useEffect(() => {
@@ -184,46 +246,6 @@ export default function ImageStudio() {
 
     loadImages()
   }, [])
-
-  // Trigger queue processing when queue changes
-  useEffect(() => {
-    processQueue()
-  }, [generationQueue, processQueue])
-
-  // Save image index to server when images change
-  const saveImagesToServer = async (newImages: GeneratedImage[]) => {
-    if (newImages.length === 0) return
-
-    try {
-      // Convert to server format with filenames
-      const serverImages = newImages.map(img => {
-        // For user-generated images, extract filename from src
-        const filename = img.src.startsWith('/aigenerate/')
-          ? img.src.substring('/aigenerate/'.length)
-          : ''
-
-        return {
-          id: img.id,
-          prompt: img.prompt,
-          aspectRatio: img.aspectRatio,
-          quality: img.quality,
-          modelName: img.modelName,
-          filename,
-          url: img.src,
-          alt: img.alt,
-          createdAt: img.createdAt || Date.now(),
-        }
-      })
-
-      await fetch('/api/images/save', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ images: serverImages }),
-      })
-    } catch (error) {
-      console.error('Failed to save images to server:', error)
-    }
-  }
 
   const getAspectClass = (ratio: string) => {
     const [w, h] = ratio.split(':')
@@ -270,6 +292,8 @@ export default function ImageStudio() {
       quality: selectedQuality,
       referenceImage,
     }])
+    // Trigger processing
+    setTimeout(processQueue, 0)
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -327,30 +351,78 @@ export default function ImageStudio() {
       </header>
 
       <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8">
-        {/* Initial loading placeholder */}
-        {isLoading && (
-          <div className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
-            <div className="w-full h-32 bg-surface-container-low rounded-xl flex items-center justify-center">
-              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <span className="ml-3 text-on-surface-variant">Loading images...</span>
-            </div>
-          </div>
-        )}
-
-        {/* Loading placeholder when generating */}
-        {!isLoading && isGenerating && (
-          <div className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
+        {/* Initial loading skeleton placeholders matching default count */}
+        {isLoading && defaultImages.map((_, index) => (
+          <div key={`skeleton-${index}`} className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
             <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
-              <div className="aspect-[1/1] bg-surface-container-high rounded-xl flex items-center justify-center">
-                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
+              <div className={`overflow-hidden ${getAspectClass(defaultImages[index].aspectRatio)} bg-surface-container-high !font-sans`}></div>
             </div>
             <div className="space-y-2">
               <div className="h-4 bg-surface-container-high rounded w-3/4"></div>
               <div className="h-3 bg-surface-container-high rounded w-full"></div>
+              <div className="flex gap-1 pt-1">
+                <div className="h-3 bg-surface-container-high rounded w-20"></div>
+                <div className="h-3 bg-surface-container-high rounded w-12"></div>
+                <div className="h-3 bg-surface-container-high rounded w-10"></div>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {/* Loading placeholder for current generation and queued items */}
+        {!isLoading && isGenerating && (
+          <div className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
+            <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
+              <div className={`overflow-hidden ${getAspectClass(selectedRatio)} bg-surface-container-high flex items-center justify-center`}>
+                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin !font-sans"></div>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <p className="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed opacity-60">
+                &quot;{prompt}&quot;
+              </p>
+              <div className="flex flex-wrap gap-1.5 pt-1">
+                <span className="px-2 py-1 bg-primary-container/50 text-on-primary-container text-[9px] font-bold rounded-full uppercase tracking-wide">
+                  {currentModel?.name || 'Generating'}
+                </span>
+                <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                  {selectedRatio}
+                </span>
+                <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                  {selectedQuality}
+                </span>
+              </div>
             </div>
           </div>
         )}
+        {!isLoading && generationQueue.map((item, index) => {
+          const model = models.find(m => m.id === item.modelId)
+          return (
+            <div key={`queue-${index}`} className="flex flex-col gap-4 group animate-pulse break-inside-avoid opacity-60">
+              <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
+                <div className={`overflow-hidden ${getAspectClass(item.aspectRatio)} bg-surface-container-high flex items-center justify-center`}>
+                  <div className="w-8 h-8 border-3 border-primary/60 border-t-transparent rounded-full animate-spin !font-sans"></div>
+                </div>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed opacity-60">
+                  &quot;{item.prompt}&quot;
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  <span className="px-2 py-1 bg-primary-container/50 text-on-primary-container text-[9px] font-bold rounded-full uppercase tracking-wide">
+                    {model?.name || 'Queued'}
+                  </span>
+                  <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                    {item.aspectRatio}
+                  </span>
+                  <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                    {item.quality}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )
+        })}
 
         {!isLoading && images.map((image) => {
           return (
@@ -422,18 +494,99 @@ export default function ImageStudio() {
           className="fixed inset-0 bg-black/80 z-[200] flex items-center justify-center p-4"
           onClick={() => setZoomImage(null)}
         >
-          <div className="relative max-w-[90vw] max-h-[90vh]">
-            <img
-              src={zoomImage.src}
-              alt={zoomImage.alt}
-              className="max-w-full max-h-[90vh] object-contain rounded-lg"
-            />
-            <button
-              className="absolute top-4 right-4 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70"
-              onClick={() => setZoomImage(null)}
-            >
-              <span className="material-symbols-outlined">close</span>
-            </button>
+          <div
+            className="relative bg-surface rounded-2xl overflow-hidden max-w-[90vw] max-h-[85vh] w-[1200px] flex"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Left: Image */}
+            <div className="flex-1 bg-surface-container-low flex items-center justify-center p-6">
+              <img
+                src={zoomImage.src}
+                alt={zoomImage.alt}
+                className="max-w-full max-h-[75vh] object-contain rounded-lg"
+              />
+            </div>
+
+            {/* Right: Info */}
+            <div className="w-80 border-l border-outline-variant/10 p-6 flex flex-col">
+              <div className="flex-1 space-y-6 overflow-y-auto">
+                {/* Prompt */}
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Prompt
+                  </label>
+                  <div className="p-4 bg-surface-container-low rounded-lg">
+                    <p className="text-sm text-on-surface leading-relaxed">
+                      {zoomImage.prompt}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Metadata */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant">
+                    Generation Details
+                  </label>
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-on-surface-variant">Model</span>
+                      <span className="text-xs font-semibold text-on-surface bg-primary-container/50 px-2 py-1 rounded-md">
+                        {zoomImage.modelName}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-on-surface-variant">Aspect Ratio</span>
+                      <span className="text-xs font-semibold text-on-surface">
+                        {zoomImage.aspectRatio}
+                      </span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs text-on-surface-variant">Quality</span>
+                      <span className="text-xs font-semibold text-on-surface">
+                        {zoomImage.quality}
+                      </span>
+                    </div>
+                    {zoomImage.createdAt && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs text-on-surface-variant">Created</span>
+                        <span className="text-xs font-semibold text-on-surface">
+                          {new Date(zoomImage.createdAt).toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="mt-6 pt-6 border-t border-outline-variant/10 space-y-3">
+                <a
+                  href={zoomImage.src}
+                  download
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-on-primary rounded-lg font-semibold text-sm hover:bg-primary-dim transition-colors"
+                >
+                  <span className="material-symbols-outlined">download</span>
+                  Download Image
+                </a>
+                <button
+                  onClick={() => {
+                    regenerateFromImage(zoomImage)
+                    setZoomImage(null)
+                  }}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-surface-container-high text-on-surface rounded-lg font-semibold text-sm hover:bg-surface-container-highest transition-colors"
+                >
+                  <span className="material-symbols-outlined">refresh</span>
+                  Regenerate
+                </button>
+                <button
+                  onClick={() => setZoomImage(null)}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-transparent border border-outline-variant/20 text-on-surface-variant rounded-lg font-semibold text-sm hover:bg-surface-container-high transition-colors"
+                >
+                  <span className="material-symbols-outlined">close</span>
+                  Close
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -464,22 +617,26 @@ export default function ImageStudio() {
               <span className="material-symbols-outlined">expand_more</span>
             </button>
             {isModelOpen && (
-              <div className="absolute bottom-full mb-2 left-0 right-0 bg-surface-container-highest rounded-lg shadow-xl border border-outline-variant/10 overflow-hidden">
+              <div className="absolute bottom-full mb-0 left-0 right-0 bg-surface-container-highest rounded-lg shadow-xl border border-outline-variant/10 overflow-hidden">
+                <div className="h-2"></div>
                 {models.map((model) => (
                   <button
                     key={model.id}
-                    className={`w-full text-left px-3 py-2 text-sm hover:bg-primary-container hover:text-on-primary-container transition-colors ${
-                      selectedModel === model.id ? 'bg-primary-container text-on-primary-container' : ''
-                    }`}
+                    className={`w-full text-left px-3 py-2 text-sm transition-colors bg-transparent text-on-surface hover:bg-primary-container hover:text-on-primary-container`}
                     onClick={() => {
                       setSelectedModel(model.id)
                       setIsModelOpen(false)
                     }}
                   >
-                    <div className="font-semibold text-on-surface">{model.name}</div>
-                    <div className="text-xs text-on-surface-variant">{model.description}</div>
+                    <div className="font-semibold text-on-surface group-hover:text-on-primary-container">
+                      {model.name}
+                    </div>
+                    <div className="text-xs text-on-surface-variant group-hover:text-on-primary-container/70">
+                      {model.description}
+                    </div>
                   </button>
                 ))}
+                <div className="h-2"></div>
               </div>
             )}
           </div>
@@ -574,20 +731,26 @@ export default function ImageStudio() {
             onKeyDown={handleKeyDown}
           />
 
-          {/* Generate Button */}
-          <button
-            className="w-12 h-12 flex items-center justify-center rounded-xl bg-primary text-on-primary shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-            onClick={queueGenerate}
-            disabled={!prompt.trim()}
-          >
-            {isGenerating ? (
-              <span className="w-6 h-6 border-2 border-on-primary border-t-transparent rounded-full animate-spin"></span>
-            ) : (
+          {/* Generate or Stop Button */}
+          {isGenerating ? (
+            <button
+              className="w-12 h-12 flex items-center justify-center rounded-xl bg-error text-on-error shadow-lg shadow-error/20 hover:bg-error/90 transition-all active:scale-95"
+              onClick={stopGeneration}
+              title="Stop generation"
+            >
+              <span className="material-symbols-outlined">stop</span>
+            </button>
+          ) : (
+            <button
+              className="w-12 h-12 flex items-center justify-center rounded-xl bg-primary text-on-primary shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+              onClick={queueGenerate}
+              disabled={!prompt.trim()}
+            >
               <span className="material-symbols-outlined group-hover:translate-x-0.5 transition-transform">
                 arrow_forward
               </span>
-            )}
-          </button>
+            </button>
+          )}
         </div>
       </div>
 

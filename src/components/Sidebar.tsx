@@ -10,6 +10,7 @@ export default function Sidebar() {
     if (path === '/image') return pathname === '/image' || pathname.startsWith('/image')
     if (path === '/video') return pathname === '/video' || pathname.startsWith('/video')
     if (path === '/audio') return pathname === '/audio' || pathname.startsWith('/audio')
+    if (path === '/plaza') return pathname === '/plaza' || pathname.startsWith('/plaza')
     return false
   }
 
@@ -65,6 +66,24 @@ export default function Sidebar() {
             style={{ fontVariationSettings: isActive('/audio') ? "'FILL' 1" : "'FILL' 0" }}
           >
             graphic_eq
+          </span>
+        </Link>
+        {/* Separator */}
+        <div className="w-8 h-[1px] bg-slate-200 dark:bg-slate-700 rounded-full"></div>
+        {/* Plaza */}
+        <Link
+          href="/plaza"
+          className={`${
+            isActive('/plaza')
+              ? 'bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300'
+              : 'text-slate-500 dark:text-slate-400 hover:text-blue-500 dark:hover:text-blue-300'
+          } rounded-xl p-3 translate-x-1 duration-300 group`}
+        >
+          <span
+            className="material-symbols-outlined"
+            style={{ fontVariationSettings: isActive('/plaza') ? "'FILL' 1" : "'FILL' 0" }}
+          >
+            storefront
           </span>
         </Link>
       </nav>
