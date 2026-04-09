@@ -1,133 +1,169 @@
 'use client'
 
-import { useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import { useState, useEffect } from 'react'
+
+declare global {
+  interface Window {
+    ethereum?: {
+      isMetaMask?: boolean
+      isConnected?: boolean
+      request: (args: { method: string; params?: unknown[] }) => Promise<unknown>
+      on: (event: string, callback: (...args: unknown[]) => void) => void
+      removeListener: (event: string, callback: (...args: unknown[]) => void) => void
+    }
+    solana?: {
+      isPhantom?: boolean
+      connect: () => Promise<{ publicKey: { toString: () => string } }>
+    }
+  }
+}
 
 interface Web3ConnectButtonProps {
-  className?: string
+  isLoggedIn?: boolean
 }
 
 interface Wallet {
   name: string
   icon: string
   chain: 'ethereum' | 'solana'
+  detect: () => boolean
 }
 
-const wallets: Wallet[] = [
-  { name: 'MetaMask', icon: 'metamask', chain: 'ethereum' },
-  { name: 'Phantom', icon: 'phantom', chain: 'solana' },
+const WALLETS: Wallet[] = [
+  {
+    name: 'MetaMask',
+    icon: '/images/metamask.svg',
+    chain: 'ethereum',
+    detect: () => typeof window.ethereum !== 'undefined' && window.ethereum?.isMetaMask === true
+  },
+  {
+    name: 'Phantom',
+    icon: '/images/phantom.svg',
+    chain: 'solana',
+    detect: () => typeof window.solana !== 'undefined' && window.solana?.isPhantom === true
+  }
 ]
 
-export default function Web3ConnectButton({ className = '' }: Web3ConnectButtonProps) {
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [connecting, setConnecting] = useState<string | null>(null)
+export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectButtonProps) {
+  const [address, setAddress] = useState<string | null>(null)
+  const [connectingWallet, setConnectingWallet] = useState<string | null>(null)
+  const [availableWallets, setAvailableWallets] = useState<Wallet[]>([])
+  const supabase = createClient()
 
-  const handleConnect = async (walletName: string, chain: 'ethereum' | 'solana', iconName: string) => {
-    const supabase = createClient()
-    setConnecting(walletName)
-    setShowDropdown(false)
+  useEffect(() => {
+    const detected = WALLETS.filter(w => w.detect())
+    setAvailableWallets(detected)
+  }, [])
 
+  useEffect(() => {
+    const checkConnection = async () => {
+      if (window.ethereum && isLoggedIn) {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' }) as string[]
+        if (accounts.length > 0) setAddress(accounts[0])
+      }
+    }
+    if (isLoggedIn) checkConnection()
+    else setAddress(null)
+
+    if (window.ethereum) {
+      const handleAccountsChanged = (accounts: unknown) => {
+        const acc = accounts as string[]
+        setAddress(acc.length === 0 ? null : isLoggedIn ? acc[0] : null)
+      }
+      window.ethereum.on('accountsChanged', handleAccountsChanged)
+      return () => window.ethereum?.removeListener('accountsChanged', handleAccountsChanged)
+    }
+  }, [isLoggedIn])
+
+  const signInWithWallet = async (wallet: Wallet) => {
+    setConnectingWallet(wallet.name)
     try {
-      let data: any, error: any
+      console.log('Starting Web3 login for:', wallet.name, wallet.chain)
       
-      if (chain === 'ethereum') {
-        ({ data, error } = await supabase.auth.signInWithWeb3({
-          chain: 'ethereum',
-          statement: 'I accept the Terms of Service at https://eleai.studio/tos',
-        }))
-      } else {
-        ({ data, error } = await supabase.auth.signInWithWeb3({
-          chain: 'solana',
-          statement: 'I accept the Terms of Service at https://eleai.studio/tos',
-        }))
+      // Force permission request to show account selector (allows switching between wallets)
+      if (wallet.chain === 'ethereum' && window.ethereum) {
+        await window.ethereum.request({
+          method: 'wallet_requestPermissions',
+          params: [{ eth_accounts: {} }]
+        })
+      } else if (wallet.chain === 'solana' && window.solana) {
+        await window.solana.connect({ onlyIfTrusted: false })
       }
       
+      const { data, error } = await supabase.auth.signInWithWeb3({
+        chain: wallet.chain,
+        statement: 'I accept the Terms of Service at https://eleai.studio/tos'
+      })
+      console.log('Web3 login result:', { data, error })
       if (error) {
-        console.error('Web3 connect error:', error.message)
         alert(error.message)
-      } else {
-        window.location.reload()
       }
     } catch (err) {
-      console.error('Web3 connect exception:', err)
-      alert('Failed to connect wallet')
+      console.error('Signing error:', err)
     } finally {
-      setConnecting(null)
+      setConnectingWallet(null)
     }
   }
 
-  const getWalletIcon = (iconName: string) => {
-    if (iconName === 'metamask') {
-      return (
-        <svg className="w-5 h-5" viewBox="0 0 40 40" fill="none">
-          <path d="M35.8 5L21.9 14.5L24.2 8.2L35.8 5Z" fill="#E17726"/>
-          <path d="M4.2 5L18 14.5L15.8 8.2L4.2 5Z" fill="#E27625"/>
-          <path d="M31.1 26.8L27.2 31.9L34.5 34.2L37 28L31.1 26.8Z" fill="#E27625"/>
-          <path d="M2.9 28L5.5 34.2L12.8 31.9L8.9 26.8L2.9 28Z" fill="#E27625"/>
-          <path d="M13.3 16.6L10.9 20L20.5 20.1L18.9 16.1L13.3 16.6Z" fill="#E27625"/>
-          <path d="M26.7 16.6L21.2 16.1L19.6 20L27.1 20L26.7 16.6Z" fill="#E27625"/>
-        </svg>
-      )
-    }
-    if (iconName === 'phantom') {
-      return (
-        <svg className="w-5 h-5" viewBox="0 0 128 128" fill="none">
-          <circle cx="64" cy="64" r="64" fill="url(#phantom-grad)"/>
-          <defs>
-            <linearGradient id="phantom-grad" x1="0" y1="0" x2="128" y2="128">
-              <stop stopColor="#534BB1"/>
-              <stop offset="1" stopColor="#551BF9"/>
-            </linearGradient>
-          </defs>
-          <path d="M38 20L64 36L90 20" stroke="#67D1FF" strokeWidth="4" strokeLinecap="round"/>
-          <path d="M38 36L64 52L90 36" stroke="#67D1FF" strokeWidth="4" strokeLinecap="round"/>
-          <path d="M38 52L64 68L90 52" stroke="#67D1FF" strokeWidth="4" strokeLinecap="round"/>
-        </svg>
-      )
-    }
-    return null
+  if (address) {
+    return (
+      <button
+        onClick={() => setAddress(null)}
+        className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-orange-500 text-white rounded-lg"
+      >
+        <span className="font-medium">{address.slice(0, 6)}...{address.slice(-4)}</span>
+      </button>
+    )
   }
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setShowDropdown(!showDropdown)}
-        className={`flex items-center gap-2 px-5 py-2 text-sm font-semibold text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg hover:opacity-90 transition-opacity ${className}`}
-      >
-        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-        </svg>
-        Connect
-      </button>
+    <div className="space-y-4">
+      <div className="text-center">
+        <p className="text-lg font-medium text-slate-800 dark:text-white mb-1">Connect Your Wallet</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Select a wallet to sign in</p>
+      </div>
+      
+      <div className="space-y-3">
+        {availableWallets.map((wallet) => (
+          <button
+            key={wallet.name}
+            onClick={() => signInWithWallet(wallet)}
+            disabled={!!connectingWallet}
+            className="w-full flex items-center justify-between px-5 py-4 bg-gradient-to-r from-slate-50 to-slate-100 dark:from-slate-800 dark:to-slate-750 border border-slate-200 dark:border-slate-600 rounded-xl hover:from-white hover:to-slate-50 dark:hover:from-slate-700 dark:hover:to-slate-650 hover:border-primary/50 hover:shadow-md transition-all group"
+          >
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 rounded-xl bg-white dark:bg-slate-900 shadow-sm flex items-center justify-center p-2">
+                <img src={wallet.icon} alt={wallet.name} className="w-full h-full object-contain" />
+              </div>
+              <div className="text-left">
+                <span className="block text-base font-semibold text-slate-900 dark:text-white group-hover:text-primary transition-colors">
+                  {wallet.name}
+                </span>
+                <span className="text-xs text-slate-500 dark:text-slate-400">
+                  {wallet.chain === 'ethereum' ? 'Ethereum' : 'Solana'}
+                </span>
+              </div>
+            </div>
+            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center group-hover:bg-primary/10 transition-colors">
+              <svg className="w-4 h-4 text-slate-400 group-hover:text-primary transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </button>
+        ))}
+      </div>
 
-      {showDropdown && (
-        <>
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowDropdown(false)}
-          />
-          <div className="absolute right-0 mt-2 w-64 bg-surface rounded-xl shadow-xl border border-outline-variant/20 py-2 z-50">
-            <div className="px-4 py-2 border-b border-outline-variant/20">
-              <p className="text-xs font-medium text-on-surface-variant">Select Wallet</p>
-            </div>
-            <div className="py-2">
-              {wallets.map((wallet) => (
-                <button
-                  key={wallet.name}
-                  onClick={() => handleConnect(wallet.name, wallet.chain, wallet.icon)}
-                  disabled={connecting !== null}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-surface-container transition-colors disabled:opacity-50"
-                >
-                  {getWalletIcon(wallet.icon)}
-                  <span className="flex-1 text-left font-medium text-on-surface">{wallet.name}</span>
-                  {connecting === wallet.name && (
-                    <span className="w-5 h-5 border-2 border-primary border-t-transparent rounded-full animate-spin"></span>
-                  )}
-                </button>
-              ))}
-            </div>
+      {availableWallets.length === 0 && (
+        <div className="text-center py-8 px-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-dashed border-slate-300 dark:border-slate-600">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+            <svg className="w-8 h-8 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+            </svg>
           </div>
-        </>
+          <p className="text-slate-600 dark:text-slate-300 font-medium mb-1">No wallets detected</p>
+          <p className="text-sm text-slate-500">Please install MetaMask or Phantom to continue</p>
+        </div>
       )}
     </div>
   )
