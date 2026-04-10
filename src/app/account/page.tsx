@@ -305,49 +305,7 @@ export default function AccountPage() {
                 )}
               </div>
 
-              {/* Google Account */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm text-on-surface-variant">Google Account</span>
-                </div>
-                {hasGoogle ? (
-                  <div className="space-y-2">
-                    {identities.filter(i => i.provider === 'google').map((identity) => (
-                      <div
-                        key={identity.id}
-                        className="flex items-center justify-between px-3 py-2 bg-surface-container rounded-lg border border-outline-variant"
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-on-surface">
-                            Google
-                          </span>
-                          {identity.email && (
-                            <span className="text-xs text-on-surface-variant">
-                              {identity.email}
-                            </span>
-                          )}
-                        </div>
-                        {identities.length > 1 && (
-                          <button
-                            onClick={() => handleUnlink(identity.provider)}
-                            className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
-                            title="Unlink"
-                          >
-                            <span className="material-symbols-outlined text-lg">link_off</span>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => handleLinkGoogle()}
-                    className="w-full flex items-center justify-center px-3 py-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 hover:bg-surface-container-high transition-colors text-sm text-primary font-semibold"
-                  >
-                    + Link Google Account
-                  </button>
-                )}
-              </div>
+              {/* Link another Google is not needed - email is already shown in Email row */}
             </div>
 
             {/* Note */}
