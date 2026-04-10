@@ -770,13 +770,22 @@ export default function AudioLab() {
                         <span className="material-symbols-outlined">refresh</span>
                       </button>
                       {audio.status === 'succeeded' && (
-                        <a
-                          href={audio.audioUrl}
-                          download
-                          className="p-2 text-on-surface-variant hover:text-primary transition-colors"
-                        >
-                          <span className="material-symbols-outlined">download</span>
-                        </a>
+                        <>
+                          <a
+                            href={audio.audioUrl}
+                            download
+                            className="p-2 text-on-surface-variant hover:text-primary transition-colors"
+                          >
+                            <span className="material-symbols-outlined">download</span>
+                          </a>
+                          <button
+                            className="p-2 text-on-surface-variant hover:text-error transition-colors"
+                            onClick={() => setGeneratedAudios(prev => prev.filter(a => a.id !== audio.id))}
+                            title="Delete"
+                          >
+                            <span className="material-symbols-outlined">delete</span>
+                          </button>
+                        </>
                       )}
                     </div>
                   </div>
