@@ -30,6 +30,7 @@ export async function POST(request: NextRequest) {
       aspect_ratio: img.aspectRatio,
       quality: img.quality,
       image_url: img.src,
+      public: true,
       created_at: new Date(img.createdAt || Date.now()).toISOString(),
     }))
 

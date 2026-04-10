@@ -91,6 +91,53 @@ export async function POST(request: NextRequest) {
   try {
     const { prompt, modelId, aspectRatio, quality, referenceImage } = await request.json()
 
+    // Get user from Supabase auth cookie
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false,
+        },
+      }
+    )
+
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 }
+      )
+    }
+
+    // Check and deduct points - 10 points per generation
+    const { data: userPoints, error: pointsError } = await supabase
+      .from('user_points')
+      .select('points')
+      .eq('user_id', user.id)
+      .single()
+
+    if (pointsError || !userPoints) {
+      return NextResponse.json(
+        { success: false, error: 'No points found' },
+        { status: 400 }
+      )
+    }
+
+    if (userPoints.points < 10) {
+      return NextResponse.json(
+        { success: false, error: 'Insufficient points. Need 10 points to generate. Come back tomorrow for a reset.' },
+        { status: 400 }
+      )
+    }
+
+    // Deduct 10 points
+    await supabase
+      .from('user_points')
+      .update({ points: userPoints.points - 10, updated_at: new Date().toISOString() })
+      .eq('user_id', user.id)
+
     // Check if this is a Doubao model
     const isDoubaoModel = modelId.startsWith('doubao-')
 

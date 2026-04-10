@@ -13,10 +13,21 @@ interface GeneratedWork {
   type: 'image' | 'video' | 'audio'
   isPremium: boolean
   createdAt?: number
+  public?: boolean
 }
 
 type Category = 'image' | 'video' | 'audio'
 type Filter = 'all' | 'free' | 'premium'
+
+// Fisher-Yates shuffle for random order
+function shuffleArray<T>(array: T[]): T[] {
+  const result = [...array]
+  for (let i = result.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[result[i], result[j]] = [result[j], result[i]]
+  }
+  return result
+}
 
 export default function Plaza() {
   const [activeCategory, setActiveCategory] = useState<Category>('image')
@@ -25,30 +36,33 @@ export default function Plaza() {
   const [isLoading, setIsLoading] = useState(true)
   const [selectedWork, setSelectedWork] = useState<GeneratedWork | null>(null)
 
-  // Load all user generated works from existing APIs
+  // Load all public user generated works
   useEffect(() => {
     async function loadWorks() {
       try {
-        // Load images from existing image endpoint
-        const response = await fetch('/api/images/list')
+        // Load all public images
+        const response = await fetch('/api/images/public')
         const data = await response.json()
         if (data.success && data.images && data.images.length > 0) {
-          const loadedWorks: GeneratedWork[] = data.images.map((img: any) => ({
-            id: img.id,
-            prompt: img.prompt,
-            aspectRatio: img.aspectRatio,
-            quality: img.quality,
-            modelName: img.modelName,
-            src: img.url,
-            alt: img.alt,
-            type: 'image',
-            // For now, all are free since they're user-generated
-            isPremium: false,
-            createdAt: img.createdAt,
-          }))
-          // Sort by created time descending
-          loadedWorks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-          setWorks(loadedWorks)
+          const loadedWorks: GeneratedWork[] = data.images
+            .filter((img: any) => img.public !== false) // only public
+            .map((img: any) => ({
+              id: img.id,
+              prompt: img.prompt,
+              aspectRatio: img.aspectRatio,
+              quality: img.quality,
+              modelName: img.modelName,
+              src: img.src,
+              alt: img.alt,
+              type: 'image',
+              // For now, all are free since they're user-generated
+              isPremium: false,
+              createdAt: img.createdAt,
+              public: img.public !== false,
+            }))
+          // Random order (shuffle)
+          const shuffled = shuffleArray(loadedWorks)
+          setWorks(shuffled)
         } else {
           setWorks([])
         }
@@ -73,9 +87,8 @@ export default function Plaza() {
     return matchCategory && matchFilter
   })
 
-  const getAspectClass = (ratio: string) => {
-    const [w, h] = ratio.split(':')
-    return `aspect-[${w}/${h}]`
+  const getAspectStyle = (ratio: string) => {
+    return { aspectRatio: ratio.replace(':', '/') }
   }
 
   return (
@@ -94,7 +107,7 @@ export default function Plaza() {
         </div>
       </header>
 
-      <div className="mb-10 flex justify-between items-center">
+      <div className="mb-6 flex justify-between items-center">
         {/* Category Tabs: Image / Video / Audio */}
         <div className="inline-flex p-1 bg-surface-container-low rounded-lg">
           {(['image', 'video', 'audio'] as Category[]).map((cat) => (
@@ -130,27 +143,27 @@ export default function Plaza() {
         </div>
       </div>
 
-      {/* Grid of works */}
-      <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8">
+      {/* Grid of works - 2px spacing horizontally and vertically, container has rounded corners, items have no rounded corners */}
+      <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-[2px] space-y-[2px] overflow-hidden rounded-xl border border-outline-variant/10 bg-outline-variant/5">
         {isLoading && (
           <div className="break-inside-avoid animate-pulse">
-            <div className="w-full h-64 bg-surface-container-low rounded-xl"></div>
+            <div className="w-full h-64 bg-surface-container-low"></div>
           </div>
         )}
 
         {!isLoading && filteredWorks.length === 0 && (
           <div className="break-inside-avoid col-span-full text-center py-20 opacity-60">
-            <p className="text-on-surface-variant">No works found in this category.</p>
+            <p className="text-on-surface-variant">No public works found in this category.</p>
           </div>
         )}
 
         {filteredWorks.map((work) => (
           <div
             key={work.id}
-            className="break-inside-avoid group relative bg-surface-container-low rounded-xl overflow-hidden cursor-pointer transition-all hover:shadow-xl"
+            className="break-inside-avoid group relative bg-surface-container-low overflow-hidden cursor-pointer transition-all hover:shadow-xl"
             onClick={() => setSelectedWork(work)}
           >
-            <div className={`relative overflow-hidden ${getAspectClass(work.aspectRatio)}`}>
+            <div className="relative overflow-hidden" style={getAspectStyle(work.aspectRatio)}>
               <img
                 src={work.src}
                 alt={work.alt}
@@ -163,16 +176,16 @@ export default function Plaza() {
                   </span>
                 </div>
               )}
-              <div className="absolute inset-0 bg-gradient-to-t from-on-surface/70 via-transparent to-transparent opacity-0 group-hover:opacity-80 transition-opacity"></div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent opacity-0 group-hover:opacity-90 transition-opacity"></div>
               <div className="absolute bottom-3 left-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                <p className="text-on-surface text-sm font-semibold line-clamp-2">
+                <p className="text-white text-sm font-semibold line-clamp-2">
                   {work.prompt}
                 </p>
                 <div className="flex items-center gap-2 mt-2">
-                  <span className="text-[10px] text-on-surface/80 bg-on-surface/20 px-2 py-1 rounded-full backdrop-blur">
+                  <span className="text-[10px] text-white bg-white/20 px-2 py-1 rounded-full backdrop-blur">
                     {work.modelName}
                   </span>
-                  <span className="text-[10px] text-on-surface/80 bg-on-surface/20 px-2 py-1 rounded-full backdrop-blur">
+                  <span className="text-[10px] text-white bg-white/20 px-2 py-1 rounded-full backdrop-blur">
                     {work.aspectRatio}
                   </span>
                 </div>
@@ -276,7 +289,7 @@ export default function Plaza() {
                   className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-primary text-on-primary rounded-lg font-semibold text-sm hover:bg-primary-dim transition-colors"
                 >
                   <span className="material-symbols-outlined">download</span>
-                  Download
+                  Download Image
                 </a>
                 <button
                   onClick={() => setSelectedWork(null)}

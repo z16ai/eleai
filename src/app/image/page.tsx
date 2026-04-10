@@ -885,13 +885,21 @@ const processingRef = useRef(false)
             onKeyDown={handleKeyDown}
           />
 
+          {/* Cost display - 10 points per generation */}
+          <div className="flex items-center gap-1 px-2 py-1 bg-surface-container-high rounded-lg shrink-0">
+            <img src="/images/points-icon.png" alt="Points" className="w-4 h-4" />
+            <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
+              10 Pts
+            </span>
+          </div>
+
           {/* Always arrow (generate) button - allow adding new tasks anytime
               even when generation is in progress. Button disabled only when input is empty. */}
           <button
             className="w-12 h-12 flex items-center justify-center rounded-xl bg-primary text-on-primary shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
             onClick={queueGenerate}
             disabled={!prompt.trim()}
-            title="Add to generation queue"
+            title="Add to generation queue (costs 10 points)"
           >
             <span className="material-symbols-outlined group-hover:translate-x-0.5 transition-transform">
               arrow_forward
@@ -899,12 +907,6 @@ const processingRef = useRef(false)
           </button>
         </div>
       </div>
-
-      <footer className="py-8 mt-12 border-t border-outline-variant/10">
-        <p className="font-manrope text-[10px] font-bold text-outline-variant uppercase tracking-[0.2em] opacity-30 text-center">
-          © 2026 eleAI Studio // The Digital Curator
-        </p>
-      </footer>
 
       <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </main>

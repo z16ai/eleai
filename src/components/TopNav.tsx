@@ -3,6 +3,9 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import AuthButton from './auth/AuthButton'
+import { useAuth } from '@/hooks/useAuth'
+import { useState, useEffect } from 'react'
+import { createClient } from '@supabase/supabase-js'
 
 const workspaceItems = [
   { href: '/image', label: 'Image', icon: 'image' },
@@ -16,10 +19,64 @@ const navItems = [
 
 export default function TopNav() {
   const pathname = usePathname() || ''
+  const { user } = useAuth()
+  const [points, setPoints] = useState<number | null>(null)
+  const [toastMessage, setToastMessage] = useState<string | null>(null)
 
   const isActive = (href: string) => {
     return pathname.startsWith(href)
   }
+
+  useEffect(() => {
+    if (!user) {
+      setPoints(null)
+      return
+    }
+
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    async function fetchPoints() {
+      const { data, error } = await supabase
+        .from('user_points')
+        .select('points, last_reset_date')
+        .eq('user_id', user.id)
+        .single()
+
+      if (!error && data) {
+        setPoints(data.points)
+
+        // Check if today is a new day since last visit
+        const today = new Date().toDateString()
+        const lastReset = data.last_reset_date ? new Date(data.last_reset_date).toDateString() : ''
+
+        if (lastReset !== today) {
+          // Daily reset done by cron job, just notify user
+          setToastMessage('Daily 88 points credited')
+          setTimeout(() => setToastMessage(null), 3000)
+          console.log('Daily 88 points credited to user')
+        }
+      } else {
+        // No record found - insert default 88 points
+        const { error: insertError } = await supabase
+          .from('user_points')
+          .insert([{ user_id: user.id, points: 88 }])
+
+        if (!insertError) {
+          setPoints(88)
+          setToastMessage('Daily 88 points credited')
+          setTimeout(() => setToastMessage(null), 3000)
+        } else {
+          console.error('Failed to create user points record:', insertError)
+          setPoints(0)
+        }
+      }
+    }
+
+    fetchPoints()
+  }, [user])
 
   return (
     <nav className="fixed top-0 z-50 w-full h-14 bg-slate-50/95 dark:bg-slate-950/95 backdrop-blur-sm border-b border-slate-200/50 dark:border-slate-800/50 shadow-sm transition-all duration-200">
@@ -31,9 +88,9 @@ export default function TopNav() {
               eleAI Studio
             </span>
           </Link>
-          
+
           <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
-          
+
           <div className="flex items-center gap-1">
             {workspaceItems.map((item) => (
               <Link
@@ -83,9 +140,31 @@ export default function TopNav() {
             Tokenomics
           </Link>
           <div className="h-5 w-px bg-slate-300 dark:bg-slate-600"></div>
+          {/* Points display - before AuthButton */}
+          {user && points !== null && (
+            <>
+              <div
+                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200/50 dark:border-amber-700/30 rounded-lg cursor-help"
+                title="88 daily points. No roll-overs."
+              >
+                <img src="/images/points-icon.png" alt="Points" className="w-5 h-5" />
+                <span className="text-sm font-bold text-amber-700 dark:text-amber-300">
+                  {points} Pts
+                </span>
+              </div>
+              <div className="h-5 w-px bg-slate-300 dark:bg-slate-600"></div>
+            </>
+          )}
           <AuthButton />
         </div>
       </div>
+
+      {/* Toast notification */}
+      {toastMessage && (
+        <div className="fixed top-16 left-1/2 -translate-x-1/2 bg-amber-50 border border-amber-200 text-amber-800 px-6 py-3 rounded-lg shadow-2xl z-[300] animate-in fade-in slide-in-from-top-4">
+          <p className="text-sm font-medium">{toastMessage}</p>
+        </div>
+      )}
     </nav>
   )
 }
