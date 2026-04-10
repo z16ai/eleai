@@ -16,7 +16,6 @@ export default function AccountPage() {
   const { user, loading: authLoading, signOut } = useAuth()
   const [web3Info, setWeb3Info] = useState<Web3Info | null>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClient()
 
   // Get email immediately from auth context - no need to wait
   const email = user?.email || null
@@ -25,7 +24,7 @@ export default function AccountPage() {
     if (authLoading) return
 
     if (user) {
-      // Try to get web3 directly from user_metadata (native web3 login) - no DB query needed
+      // Get web3 directly from user_metadata (native web3 login) - no DB query needed
       const sub = user.user_metadata?.sub
       if (sub && sub.startsWith('web3:')) {
         const parts = sub.split(':')
@@ -33,26 +32,9 @@ export default function AccountPage() {
           const chain = parts[1]
           const address = parts.slice(2).join(':')
           setWeb3Info({ chain, address })
-          setLoading(false)
-          return
         }
       }
-
-      // For email users with linked web3 - check database
-      if (email) - need to query DB for stored web3 account
-      const loadWeb3FromDB = async () => {
-        const { data: profileData, error } = await supabase
-          .from('user_profiles')
-          .select('web3_account')
-          .eq('id', user.id)
-          .single()
-        if (!error && profileData?.web3_account && profileData.web3_account.address) {
-          setWeb3Info(profileData.web3_account as Web3Info)
-        }
-        setLoading(false)
-      }
-
-      loadWeb3FromDB()
+      setLoading(false)
     } else {
       setLoading(false)
     }
