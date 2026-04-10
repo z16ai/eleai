@@ -116,9 +116,6 @@ export default function UserMenu() {
         isOpen={showLinkModal}
         onClose={() => setShowLinkModal(false)}
       />
-          </div>
-        </>
-      )}
     </div>
   )
 }
