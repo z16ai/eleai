@@ -412,7 +412,7 @@ export default function AudioLab() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Filters */}
         <div className="lg:col-span-3">
-          <div className="glass-panel rounded-xl p-4 shadow-xl sticky top-10">
+          <div className="glass-panel rounded-xl p-4 shadow-xl sticky top-10 opacity-50 pointer-events-none">
             <h4 className="text-xs font-bold uppercase tracking-widest text-primary mb-4">
               Select Model
             </h4>
@@ -779,28 +779,6 @@ export default function AudioLab() {
                           >
                             <span className="material-symbols-outlined">download</span>
                           </a>
-                          <button
-                            className="p-2 text-on-surface-variant hover:text-error transition-colors"
-                            onClick={() => {
-                              const updated = generatedAudios.filter(a => a.id !== audio.id)
-                              setGeneratedAudios(updated)
-                              saveAudios(updated)
-                            }}
-                            title="Delete"
-                          >
-                            <span className="material-symbols-outlined">delete</span>
-                          </button>
-                        </>
-                      )}
-                      {audio.status === 'failed' && (
-                        <>
-                          <button
-                            className="p-2 text-on-surface-variant hover:text-primary transition-colors"
-                            onClick={() => regenerate(audio)}
-                            title="Regenerate with this text and voice"
-                          >
-                            <span className="material-symbols-outlined">refresh</span>
-                          </button>
                           <button
                             className="p-2 text-on-surface-variant hover:text-error transition-colors"
                             onClick={() => {
