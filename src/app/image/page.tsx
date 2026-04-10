@@ -86,7 +86,26 @@ export default function ImageStudio() {
   const [isLoading, setIsLoading] = useState(true)
   const [zoomImage, setZoomImage] = useState<GeneratedImage | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
-  const [generationQueue, setGenerationQueue] = useState<GenerationQueueItem[]>([])
+  // Initialize queue from localStorage persistence
+  // Note: referenceImage is not persisted because it can be very large (base64)
+  const [generationQueue, setGenerationQueue] = useState<GenerationQueueItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('eleai-image-generation-queue')
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved) as GenerationQueueItem[]
+          // Clear referenceImage because it can be large and cause localStorage overflow
+          return parsed.map(item => ({
+            ...item,
+            referenceImage: null, // reference image won't survive page refresh
+          }))
+        } catch (e) {
+          return []
+        }
+      }
+    }
+    return []
+  })
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
 const processingRef = useRef(false)
   const queueRef = useRef<GenerationQueueItem[]>([])
@@ -95,6 +114,29 @@ const processingRef = useRef(false)
 
   // Keep queueRef always up to date - update immediately
   queueRef.current = generationQueue
+
+  // Persist queue to localStorage when it changes
+  // Note: referenceImage is not persisted because it can be very large (base64)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (generationQueue.length > 0) {
+        try {
+          // Don't persist referenceImage to avoid localStorage overflow
+          const toPersist = generationQueue.map(item => ({
+            ...item,
+            referenceImage: null,
+          }))
+          localStorage.setItem('eleai-image-generation-queue', JSON.stringify(toPersist))
+        } catch (e) {
+          // If serialization fails (too big), don't persist
+          console.warn('Failed to persist queue to localStorage, likely too large')
+          localStorage.removeItem('eleai-image-generation-queue')
+        }
+      } else {
+        localStorage.removeItem('eleai-image-generation-queue')
+      }
+    }
+  }, [generationQueue])
 
   const aspectRatios = ['21:9', '16:9', '3:2', '4:3', '1:1', '3:4', '2:3', '9:16']
   const qualities = ['2K', '4K']
@@ -108,6 +150,8 @@ const processingRef = useRef(false)
     setGenerationQueue([])
     setIsGenerating(false)
     processingRef.current = false
+    queueRef.current = []
+    lastPromptRef.current = ''
   }, [])
 
   const savedImageIdsRef = useRef<Set<string>>(new Set())
@@ -198,9 +242,6 @@ const processingRef = useRef(false)
           saveImagesToServer(updatedImages)
           return updatedImages
         })
-        // Clear input after successful generation
-        setPrompt('')
-        setReferenceImage(null)
       } else if (!abortController.signal.aborted) {
         console.error('Generation failed:', data.error)
         alert(`Generation failed: ${data.error || 'Unknown error'}`)
@@ -225,6 +266,13 @@ const processingRef = useRef(false)
       }
     }
   }, [saveImagesToServer])
+
+  // Auto-start processing restored queue after page load
+  useEffect(() => {
+    if (user && !authLoading && generationQueue.length > 0 && !processingRef.current) {
+      setTimeout(processQueue, 500)
+    }
+  }, [user, authLoading, generationQueue.length, processQueue])
 
   // Load image index from server on mount
   useEffect(() => {
@@ -266,8 +314,11 @@ const processingRef = useRef(false)
   }, [user, authLoading])
 
   const getAspectClass = (ratio: string) => {
-    const [w, h] = ratio.split(':')
-    return `aspect-[${w}/${h}]`
+    const parts = ratio.split(':')
+    if (parts.length !== 2) return 'aspect-square'
+    const [w, h] = parts
+    const className = `aspect-[${w}/${h}]`
+    return className
   }
 
   const getIconName = (ratio: string) => {
@@ -300,41 +351,53 @@ const processingRef = useRef(false)
   }
 
   const lastPromptRef = useRef<string>('')
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const queueGenerate = () => {
-    if (!prompt.trim()) return
+    const currentPrompt = prompt.trim()
+    if (!currentPrompt) return
     if (!user) {
       setIsAuthModalOpen(true)
       return
     }
 
-    // Prevent duplicate triggers for same prompt
-    if (lastPromptRef.current === prompt && processingRef.current) {
-      return
-    }
-    lastPromptRef.current = prompt
-    
+    // Capture current values BEFORE clearing - important for closure
+    const currentPromptToAdd = currentPrompt
+    const currentModelId = selectedModel
+    const currentRatio = selectedRatio
+    const currentQuality = selectedQuality
+    const currentRefImage = referenceImage
+
     // Save current input values for loading display
-    lastInputRef.current = { prompt, ratio: selectedRatio, quality: selectedQuality, modelId: selectedModel }
+    lastInputRef.current = {
+      prompt: currentPromptToAdd,
+      ratio: currentRatio,
+      quality: currentQuality,
+      modelId: currentModelId
+    }
 
-    // Prevent duplicate in queue
-    setGenerationQueue(prev => {
-      const isDuplicate = prev.some(item => 
-        item.prompt === prompt && 
-        item.modelId === selectedModel
-      )
-      if (isDuplicate) return prev
-      
-      return [...prev, {
-        prompt,
-        modelId: selectedModel,
-        aspectRatio: selectedRatio,
-        quality: selectedQuality,
-        referenceImage,
-      }]
-    })
+    // Add new task to queue - NO deduplication, allow duplicates
+    setGenerationQueue(prev => [...prev, {
+      prompt: currentPromptToAdd,
+      modelId: currentModelId,
+      aspectRatio: currentRatio,
+      quality: currentQuality,
+      referenceImage: currentRefImage,
+    }])
 
-    // Trigger processing if not already
+    // CLEAR IMMEDIATELY - after capturing values for queue
+    setPrompt('')
+    setReferenceImage(null)
+    lastPromptRef.current = ''
+
+    // Keep focus on input for continuous typing
+    setTimeout(() => {
+      if (inputRef.current) {
+        inputRef.current.focus()
+      }
+    }, 0)
+
+    // Trigger processing if not already running
     if (!processingRef.current) {
       setTimeout(processQueue, 0)
     }
@@ -418,7 +481,10 @@ const processingRef = useRef(false)
         {isLoading && defaultImages.map((_, index) => (
           <div key={`skeleton-${index}`} className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
             <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
-              <div className={`overflow-hidden ${getAspectClass(defaultImages[index].aspectRatio)} bg-surface-container-high !font-sans`}></div>
+              <div
+                className="overflow-hidden bg-surface-container-high !font-sans"
+                style={{ aspectRatio: defaultImages[index].aspectRatio.replace(':', '/') }}
+              ></div>
             </div>
             <div className="space-y-2">
               <div className="h-4 bg-surface-container-high rounded w-3/4"></div>
@@ -432,43 +498,19 @@ const processingRef = useRef(false)
           </div>
         ))}
 
-        {/* Loading placeholder for current generation */}
-        {!isLoading && isGenerating && (
-          <div className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
-            <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
-              <div className={`overflow-hidden ${getAspectClass(lastInputRef.current.ratio)} bg-surface-container-high flex items-center justify-center`}>
-                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin !font-sans"></div>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <p className="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed opacity-60">
-                &quot;{lastInputRef.current.prompt}&quot;
-              </p>
-              <div className="flex flex-wrap gap-1.5 pt-1">
-                <span className="px-2 py-1 bg-primary-container/50 text-on-primary-container text-[9px] font-bold rounded-full uppercase tracking-wide">
-                  {models.find(m => m.id === lastInputRef.current.modelId)?.name || 'Generating'}
-                </span>
-                <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
-                  {lastInputRef.current.ratio}
-                </span>
-                <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
-                  {lastInputRef.current.quality}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
-        {/* Remaining queued items (skip first if being processed) */}
+        {/* All queued items except current being processed - reverse display so newest is on top */}
         {!isLoading && generationQueue.length > 0 && (
           <>
-            {generationQueue.slice(isGenerating ? 1 : 0).map((item, index) => {
+            {(isGenerating ? generationQueue.slice(1) : generationQueue).reverse().map((item, index) => {
               const model = models.find(m => m.id === item.modelId)
-              const actualIndex = isGenerating ? index + 1 : index
               return (
-                <div key={`queue-${actualIndex}`} className="flex flex-col gap-4 group animate-pulse break-inside-avoid opacity-60">
+                <div key={`queue-${index}`} className="flex flex-col gap-4 group animate-pulse break-inside-avoid opacity-60">
                   <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
-                    <div className={`overflow-hidden ${getAspectClass(item.aspectRatio)} bg-surface-container-high flex items-center justify-center`}>
-                      <div className="w-8 h-8 border-3 border-primary/60 border-t-transparent rounded-full animate-spin !font-sans"></div>
+                    <div
+                      className="overflow-hidden bg-surface-container-high flex items-center justify-center"
+                      style={{ aspectRatio: item.aspectRatio.replace(':', '/') }}
+                    >
+                      <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin !font-sans"></div>
                     </div>
                   </div>
                   <div className="space-y-2">
@@ -490,6 +532,35 @@ const processingRef = useRef(false)
                 </div>
               )
             })}
+            {/* Currently processing - goes at the bottom so overall order is newest on top, oldest (current) at bottom */}
+            {isGenerating && generationQueue.length > 0 && (
+              <div className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
+                <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
+                  <div
+                    className={`overflow-hidden bg-surface-container-high flex items-center justify-center`}
+                    style={{ aspectRatio: generationQueue[0].aspectRatio.replace(':', '/') }}
+                  >
+                    <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin !font-sans"></div>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed opacity-60">
+                    &quot;{generationQueue[0].prompt}&quot;
+                  </p>
+                  <div className="flex flex-wrap gap-1.5 pt-1">
+                    <span className="px-2 py-1 bg-primary-container/50 text-on-primary-container text-[9px] font-bold rounded-full uppercase tracking-wide">
+                      {models.find(m => m.id === generationQueue[0].modelId)?.name || 'Generating'}
+                    </span>
+                    <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                      {generationQueue[0].aspectRatio}
+                    </span>
+                    <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                      {generationQueue[0].quality}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
           </>
         )}
 
@@ -500,7 +571,10 @@ const processingRef = useRef(false)
                 className="relative overflow-hidden rounded-xl bg-surface-container-low cursor-zoom-in"
                 onClick={() => setZoomImage(image)}
               >
-                <div className={`overflow-hidden ${getAspectClass(image.aspectRatio)}`}>
+                <div
+                  className="overflow-hidden"
+                  style={{ aspectRatio: image.aspectRatio.replace(':', '/') }}
+                >
                   <img
                     alt={image.alt}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -786,9 +860,9 @@ const processingRef = useRef(false)
         )}
 
         {/* Input Bar */}
-        <div className="w-full glass-panel rounded-2xl shadow-2xl flex items-center p-2 pl-4 gap-3 ring-1 ring-white/50">
+        <div className="w-full glass-panel rounded-2xl shadow-2xl flex items-center p-2 pl-4 gap-2 ring-1 ring-white/50">
           {/* Reference Image Upload */}
-          <label className="w-10 h-10 rounded-xl flex items-center justify-center bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer">
+          <label className="w-10 h-10 rounded-xl flex items-center justify-center bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer shrink-0">
             <span className="material-symbols-outlined">image</span>
             <input
               type="file"
@@ -798,11 +872,12 @@ const processingRef = useRef(false)
             />
           </label>
 
-          <div className="h-6 w-[1px] bg-outline-variant/30"></div>
+          <div className="h-6 w-[1px] bg-outline-variant/30 shrink-0"></div>
 
           {/* Prompt Input */}
           <input
-            className="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium"
+            ref={inputRef}
+            className="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder-on-surface-variant/50 text-sm font-medium min-w-0"
             placeholder="Describe your vision... (Press Enter to generate)"
             type="text"
             value={prompt}
@@ -810,26 +885,18 @@ const processingRef = useRef(false)
             onKeyDown={handleKeyDown}
           />
 
-          {/* Generate or Stop Button */}
-          {isGenerating ? (
-            <button
-              className="w-12 h-12 flex items-center justify-center rounded-xl bg-error text-on-error shadow-lg shadow-error/20 hover:bg-error/90 transition-all active:scale-95"
-              onClick={stopGeneration}
-              title="Stop generation"
-            >
-              <span className="material-symbols-outlined">stop</span>
-            </button>
-          ) : (
-            <button
-              className="w-12 h-12 flex items-center justify-center rounded-xl bg-primary text-on-primary shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-              onClick={queueGenerate}
-              disabled={!prompt.trim()}
-            >
-              <span className="material-symbols-outlined group-hover:translate-x-0.5 transition-transform">
-                arrow_forward
-              </span>
-            </button>
-          )}
+          {/* Always arrow (generate) button - allow adding new tasks anytime
+              even when generation is in progress. Button disabled only when input is empty. */}
+          <button
+            className="w-12 h-12 flex items-center justify-center rounded-xl bg-primary text-on-primary shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all group active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+            onClick={queueGenerate}
+            disabled={!prompt.trim()}
+            title="Add to generation queue"
+          >
+            <span className="material-symbols-outlined group-hover:translate-x-0.5 transition-transform">
+              arrow_forward
+            </span>
+          </button>
         </div>
       </div>
 
