@@ -5,12 +5,14 @@ import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import GoogleLoginButton from './GoogleLoginButton'
 import Web3ConnectButton from './Web3ConnectButton'
+import LinkAccountsModal from './LinkAccountsModal'
 import { User } from '@supabase/supabase-js'
 
 export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const supabase = createClient()
@@ -121,17 +123,33 @@ export default function AuthButton() {
 
         {isDropdownOpen && (
           <>
-            <div className="fixed inset-0" onClick={() => setIsDropdownOpen(false)} />
-            <div className="absolute right-0 mt-2 w-40 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 py-1 z-50">
+            <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
+            <div className="absolute right-0 mt-2 w-48 bg-surface-container-low dark:bg-slate-800 rounded-xl shadow-xl border border-outline-variant/20 dark:border-slate-700 py-2 z-50">
+              <button
+                onClick={() => {
+                  setIsLinkModalOpen(true)
+                  setIsDropdownOpen(false)
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2 text-left text-sm text-on-surface dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-700"
+              >
+                <span className="material-symbols-outlined text-xl">link</span>
+                Linked Accounts
+              </button>
               <button
                 onClick={handleSignOut}
-                className="w-full px-4 py-2 text-left text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
+                className="w-full flex items-center gap-3 px-4 py-2 text-left text-sm text-on-surface dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-700"
               >
+                <span className="material-symbols-outlined text-xl">logout</span>
                 Sign Out
               </button>
             </div>
           </>
         )}
+
+        <LinkAccountsModal
+          isOpen={isLinkModalOpen}
+          onClose={() => setIsLinkModalOpen(false)}
+        />
       </div>
     )
   }
