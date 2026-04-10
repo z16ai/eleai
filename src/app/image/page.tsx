@@ -862,13 +862,24 @@ const processingRef = useRef(false)
         {/* Input Bar */}
         <div className="w-full glass-panel rounded-2xl shadow-2xl flex items-center p-2 pl-4 gap-2 ring-1 ring-white/50">
           {/* Reference Image Upload */}
-          <label className="w-10 h-10 rounded-xl flex items-center justify-center bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer shrink-0">
+          <label
+            className={`w-10 h-10 rounded-xl flex items-center justify-center bg-surface-container-high text-on-surface-variant transition-colors shrink-0 ${
+              !user ? 'opacity-50 cursor-not-allowed' : 'hover:bg-surface-container-highest cursor-pointer'
+            }`}
+            onClick={(e) => {
+              if (!user) {
+                e.preventDefault()
+                setIsAuthModalOpen(true)
+              }
+            }}
+          >
             <span className="material-symbols-outlined">image</span>
             <input
               type="file"
               accept="image/*"
               className="hidden"
               onChange={handleFileUpload}
+              disabled={!user}
             />
           </label>
 
