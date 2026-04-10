@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import GoogleLoginButton from './GoogleLoginButton'
+import Web3ConnectButton from './Web3ConnectButton'
 
 interface LinkAccountsModalProps {
   isOpen: boolean
@@ -131,6 +132,8 @@ export default function LinkAccountsModal({ isOpen, onClose }: LinkAccountsModal
   const hasEmail = identities.some(i => i.provider === 'email')
   // Check if Google already linked
   const hasGoogle = identities.some(i => i.provider === 'google')
+  // Check if Web3 already linked
+  const hasWeb3 = identities.some(i => i.provider === 'web3')
 
   const content = (
     <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
@@ -223,6 +226,16 @@ export default function LinkAccountsModal({ isOpen, onClose }: LinkAccountsModal
               Link Social Account
             </label>
             <GoogleLoginButton onClick={handleLinkGoogle} />
+          </div>
+        )}
+
+        {/* Link Web3 Wallet */}
+        {!hasWeb3 && (
+          <div className="mb-6">
+            <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant block mb-3">
+              Link Web3 Wallet
+            </label>
+            <Web3ConnectButton isLoggedIn={true} />
           </div>
         )}
 
