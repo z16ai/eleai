@@ -216,26 +216,6 @@ export default function AccountPage() {
           <div className="p-6 bg-surface-container-low rounded-xl border border-outline-variant/10">
             <h3 className="text-lg font-bold text-on-surface mb-4">Account Info</h3>
             <div className="space-y-4">
-              {/* User ID - full, click to copy */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm text-on-surface-variant">User ID</span>
-                </div>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(user.id)
-                    setMessage({ type: 'success', text: 'Copied!' })
-                    setTimeout(() => setMessage(null), 2000)
-                  }}
-                  className="w-full flex items-center justify-between px-3 py-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 transition-colors cursor-pointer"
-                >
-                  <code className="text-sm font-mono text-on-surface break-all">
-                    {user.id}
-                  </code>
-                  <span className="material-symbols-outlined text-on-surface-variant ml-2">content_copy</span>
-                </button>
-              </div>
-
               {/* Email */}
               <div>
                 <div className="flex justify-between items-center mb-1">
