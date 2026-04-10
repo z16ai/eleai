@@ -139,9 +139,9 @@ export default function AccountPage() {
               </h1>
             </div>
           </header>
-          <div className="max-w-2xl mx-auto p-8 bg-surface-container-low rounded-xl text-center animate-pulse">
-            <div className="w-32 h-6 bg-surface-container-high rounded mx-auto mb-4"></div>
-            <div className="w-48 h-4 bg-surface-container-high rounded mx-auto"></div>
+          <div className="max-w-2xl mx-auto p-12 bg-surface-container-low rounded-xl text-center">
+            <div className="w-10 h-10 mx-auto border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+            <p className="text-on-surface-variant mt-4 text-sm">Loading...</p>
           </div>
         </main>
         <Footer />
