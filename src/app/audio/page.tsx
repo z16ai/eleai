@@ -393,7 +393,7 @@ export default function AudioLab() {
 
   return (
     <main className="min-h-screen px-12 pt-20 pb-48">
-      <header className="max-w-7xl mx-auto mb-12 flex justify-between items-end">
+      <header className="flex justify-between items-end mb-12">
         <div>
           <div className="flex items-center gap-3 mb-2">
             <span className="px-2 py-0.5 bg-tertiary-container/20 text-tertiary text-[10px] font-bold tracking-widest uppercase rounded-full">
@@ -409,7 +409,7 @@ export default function AudioLab() {
         )}
       </header>
 
-      <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Filters */}
         <div className="lg:col-span-3">
           <div className="glass-panel rounded-xl p-4 shadow-xl sticky top-10">
