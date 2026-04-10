@@ -1,46 +1,52 @@
 import { NextRequest, NextResponse } from 'next/server'
-import fs from 'fs'
-import path from 'path'
-
-// Index file path in project root aigenerate folder
-const indexPath = path.join(process.cwd(), 'aigenerate', 'index.json')
-const generateDir = path.join(process.cwd(), 'public', 'aigenerate')
-
-// Ensure directories exist
-function ensureDirectories() {
-  if (!fs.existsSync(path.dirname(indexPath))) {
-    fs.mkdirSync(path.dirname(indexPath), { recursive: true })
-  }
-  if (!fs.existsSync(generateDir)) {
-    fs.mkdirSync(generateDir, { recursive: true })
-  }
-}
-
-export interface GeneratedImageRecord {
-  id: string
-  prompt: string
-  aspectRatio: string
-  quality: string
-  modelName: string
-  filename: string
-  url: string
-  alt: string
-  createdAt: number
-}
+import { createClient } from '@supabase/supabase-js'
 
 export async function GET(request: NextRequest) {
   try {
-    ensureDirectories()
+    const userIdFromHeader = request.headers.get('x-user-id')
+    console.log('List API - userId:', userIdFromHeader)
 
-    if (!fs.existsSync(indexPath)) {
-      // Return empty array if index doesn't exist
-      return NextResponse.json({ success: true, images: [] })
+    if (!userIdFromHeader) {
+      return NextResponse.json({ success: true, images: [], reason: 'no user' })
     }
 
-    const content = await fs.promises.readFile(indexPath, 'utf-8')
-    const images: GeneratedImageRecord[] = JSON.parse(content)
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
 
-    return NextResponse.json({ success: true, images })
+    console.log('List API - querying for user:', userIdFromHeader)
+
+    const { data: images, error } = await supabase
+      .from('image_generations')
+      .select('*')
+      .eq('user_id', userIdFromHeader)
+      .order('created_at', { ascending: false })
+
+    console.log('List API - found images:', images?.length || 0)
+
+    if (error) {
+      console.error('Failed to list images:', error)
+      return NextResponse.json(
+        { success: false, error: error.message },
+        { status: 500 }
+      )
+    }
+
+    const formattedImages = images.map((img) => ({
+      id: img.id,
+      prompt: img.prompt,
+      aspectRatio: img.aspect_ratio,
+      quality: img.quality,
+      modelName: img.model_id,
+      src: img.image_url,
+      alt: img.prompt,
+      createdAt: new Date(img.created_at).getTime(),
+    }))
+
+    console.log('List API - formatted images:', formattedImages.length)
+
+    return NextResponse.json({ success: true, images: formattedImages })
   } catch (error) {
     console.error('Failed to list images:', error)
     return NextResponse.json(

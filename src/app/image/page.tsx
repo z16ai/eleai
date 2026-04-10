@@ -1,6 +1,8 @@
 'use client'
 
 import { useState, useEffect, useRef, useCallback } from 'react'
+import { useAuth } from '@/hooks/useAuth'
+import AuthModal from '@/components/auth/AuthModal'
 
 interface GeneratedImage {
   id: string
@@ -72,6 +74,7 @@ const models = [
 ]
 
 export default function ImageStudio() {
+  const { user, loading: authLoading } = useAuth()
   const [prompt, setPrompt] = useState('')
   const [selectedModel, setSelectedModel] = useState(models[0].id)
   const [selectedRatio, setSelectedRatio] = useState('1:1')
@@ -84,9 +87,11 @@ export default function ImageStudio() {
   const [zoomImage, setZoomImage] = useState<GeneratedImage | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
   const [generationQueue, setGenerationQueue] = useState<GenerationQueueItem[]>([])
-  const processingRef = useRef(false)
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false)
+const processingRef = useRef(false)
   const queueRef = useRef<GenerationQueueItem[]>([])
   const abortControllerRef = useRef<AbortController | null>(null)
+  const lastInputRef = useRef({ prompt: '', ratio: '1:1', quality: '4K', modelId: models[0].id })
 
   // Keep queueRef always up to date - update immediately
   queueRef.current = generationQueue
@@ -105,40 +110,43 @@ export default function ImageStudio() {
     processingRef.current = false
   }, [])
 
+  const savedImageIdsRef = useRef<Set<string>>(new Set())
+
   // Save image index to server when images change
   const saveImagesToServer = useCallback(async (newImages: GeneratedImage[]) => {
-    if (newImages.length === 0) return
+    if (newImages.length === 0 || !user) return
+
+    // Filter out already saved images
+    const newOnlyImages = newImages.filter(img => !savedImageIdsRef.current.has(img.id))
+    if (newOnlyImages.length === 0) return
+
+    // Mark as saved
+    newOnlyImages.forEach(img => savedImageIdsRef.current.add(img.id))
 
     try {
-      // Convert to server format with filenames
-      const serverImages = newImages.map(img => {
-        // For user-generated images, extract filename from src
-        const filename = img.src.startsWith('/aigenerate/')
-          ? img.src.substring('/aigenerate/'.length)
-          : ''
-
-        return {
-          id: img.id,
-          prompt: img.prompt,
-          aspectRatio: img.aspectRatio,
-          quality: img.quality,
-          modelName: img.modelName,
-          filename,
-          url: img.src,
-          alt: img.alt,
-          createdAt: img.createdAt || Date.now(),
-        }
-      })
+      const serverImages = newOnlyImages.map(img => ({
+        id: img.id,
+        prompt: img.prompt,
+        aspectRatio: img.aspectRatio,
+        quality: img.quality,
+        modelName: img.modelName,
+        src: img.src,
+        alt: img.alt,
+        createdAt: img.createdAt || Date.now(),
+      }))
 
       await fetch('/api/images/save', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-id': user.id,
+        },
         body: JSON.stringify({ images: serverImages }),
       })
     } catch (error) {
       console.error('Failed to save images to server:', error)
     }
-  }, [])
+  }, [user])
 
   // Process queue sequentially
   const processQueue = useCallback(async () => {
@@ -146,7 +154,9 @@ export default function ImageStudio() {
 
     processingRef.current = true
     const nextItem = queueRef.current[0]
-    setGenerationQueue(prev => prev.slice(1))
+    // Keep current item for display
+    lastInputRef.current = { prompt: nextItem.prompt, ratio: nextItem.aspectRatio, quality: nextItem.quality, modelId: nextItem.modelId }
+    // Keep current item for display, remove after processing is done
     setIsGenerating(true)
 
     const abortController = new AbortController()
@@ -157,11 +167,11 @@ export default function ImageStudio() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: nextItem.prompt,
-          modelId: nextItem.modelId,
-          aspectRatio: nextItem.aspectRatio,
-          quality: nextItem.quality,
-          referenceImage: nextItem.referenceImage,
+          prompt: lastInputRef.current.prompt,
+          modelId: lastInputRef.current.modelId,
+          aspectRatio: lastInputRef.current.ratio,
+          quality: lastInputRef.current.quality,
+          referenceImage: queueRef.current[0]?.referenceImage,
         }),
         signal: abortController.signal,
       })
@@ -205,8 +215,13 @@ export default function ImageStudio() {
         setIsGenerating(false)
         processingRef.current = false
         abortControllerRef.current = null
-        // Process next item in queue
-        setTimeout(processQueue, 0)
+        lastPromptRef.current = ''
+        // Remove the processed item from queue
+        setGenerationQueue(prev => prev.slice(1))
+        // Process remaining queue items
+        if (queueRef.current.length > 0) {
+          setTimeout(processQueue, 500)
+        }
       }
     }
   }, [saveImagesToServer])
@@ -214,38 +229,41 @@ export default function ImageStudio() {
   // Load image index from server on mount
   useEffect(() => {
     async function loadImages() {
+      if (authLoading || !user) {
+        if (!user) setImages([])
+        setIsLoading(false)
+        return
+      }
+
       try {
-        const response = await fetch('/api/images/list')
+        const response = await fetch('/api/images/list', {
+          headers: { 'x-user-id': user.id },
+        })
         const data = await response.json()
-        if (data.success && data.images && data.images.length > 0) {
-          // Convert stored records to frontend format
-          const loadedImages: GeneratedImage[] = data.images.map((img: any) => ({
+        
+        if (data.success) {
+          const loadedImages: GeneratedImage[] = (data.images || []).map((img: any) => ({
             id: img.id,
             prompt: img.prompt,
             aspectRatio: img.aspectRatio,
             quality: img.quality,
             modelName: img.modelName,
-            src: img.url,
+            src: img.src,
             alt: img.alt,
             createdAt: img.createdAt,
           }))
-          // Sort by created time descending
           loadedImages.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
           setImages(loadedImages)
-        } else {
-          // If no saved images, use defaults
-          setImages(defaultImages)
         }
       } catch (error) {
         console.error('Failed to load images:', error)
-        setImages(defaultImages)
       } finally {
         setIsLoading(false)
       }
     }
 
     loadImages()
-  }, [])
+  }, [user, authLoading])
 
   const getAspectClass = (ratio: string) => {
     const [w, h] = ratio.split(':')
@@ -281,19 +299,45 @@ export default function ImageStudio() {
     setReferenceImage(null)
   }
 
+  const lastPromptRef = useRef<string>('')
+
   const queueGenerate = () => {
     if (!prompt.trim()) return
+    if (!user) {
+      setIsAuthModalOpen(true)
+      return
+    }
 
-    // Add to queue
-    setGenerationQueue(prev => [...prev, {
-      prompt,
-      modelId: selectedModel,
-      aspectRatio: selectedRatio,
-      quality: selectedQuality,
-      referenceImage,
-    }])
-    // Trigger processing
-    setTimeout(processQueue, 0)
+    // Prevent duplicate triggers for same prompt
+    if (lastPromptRef.current === prompt && processingRef.current) {
+      return
+    }
+    lastPromptRef.current = prompt
+    
+    // Save current input values for loading display
+    lastInputRef.current = { prompt, ratio: selectedRatio, quality: selectedQuality, modelId: selectedModel }
+
+    // Prevent duplicate in queue
+    setGenerationQueue(prev => {
+      const isDuplicate = prev.some(item => 
+        item.prompt === prompt && 
+        item.modelId === selectedModel
+      )
+      if (isDuplicate) return prev
+      
+      return [...prev, {
+        prompt,
+        modelId: selectedModel,
+        aspectRatio: selectedRatio,
+        quality: selectedQuality,
+        referenceImage,
+      }]
+    })
+
+    // Trigger processing if not already
+    if (!processingRef.current) {
+      setTimeout(processQueue, 0)
+    }
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -328,6 +372,30 @@ export default function ImageStudio() {
     // Don't auto-generate, let user edit first
   }
 
+  const deleteImage = async (image: GeneratedImage) => {
+    if (!user) return
+    if (!confirm('Are you sure you want to delete this image?')) return
+    
+    try {
+      const response = await fetch('/api/images/delete', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          'x-user-id': user.id,
+        },
+        body: JSON.stringify({ imageId: image.id }),
+      })
+      const result = await response.json()
+      if (result.success) {
+        setImages(prev => prev.filter(img => img.id !== image.id))
+        setToastMessage('Deleted!')
+        setTimeout(() => setToastMessage(null), 2000)
+      }
+    } catch (error) {
+      console.error('Failed to delete image:', error)
+    }
+  }
+
   const currentModel = models.find(m => m.id === selectedModel)
 
   return (
@@ -342,11 +410,6 @@ export default function ImageStudio() {
           <h1 className="text-4xl font-headline font-extrabold tracking-tight text-on-surface">Image Studio</h1>
         </div>
         <div className="flex items-center gap-4">
-          {generationQueue.length > 0 && (
-            <span className="px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-md">
-              {generationQueue.length} {generationQueue.length === 1 ? 'in queue' : 'in queue'}
-            </span>
-          )}
         </div>
       </header>
 
@@ -369,60 +432,66 @@ export default function ImageStudio() {
           </div>
         ))}
 
-        {/* Loading placeholder for current generation and queued items */}
+        {/* Loading placeholder for current generation */}
         {!isLoading && isGenerating && (
           <div className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
             <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
-              <div className={`overflow-hidden ${getAspectClass(selectedRatio)} bg-surface-container-high flex items-center justify-center`}>
+              <div className={`overflow-hidden ${getAspectClass(lastInputRef.current.ratio)} bg-surface-container-high flex items-center justify-center`}>
                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin !font-sans"></div>
               </div>
             </div>
             <div className="space-y-2">
               <p className="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed opacity-60">
-                &quot;{prompt}&quot;
+                &quot;{lastInputRef.current.prompt}&quot;
               </p>
               <div className="flex flex-wrap gap-1.5 pt-1">
                 <span className="px-2 py-1 bg-primary-container/50 text-on-primary-container text-[9px] font-bold rounded-full uppercase tracking-wide">
-                  {currentModel?.name || 'Generating'}
+                  {models.find(m => m.id === lastInputRef.current.modelId)?.name || 'Generating'}
                 </span>
                 <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
-                  {selectedRatio}
+                  {lastInputRef.current.ratio}
                 </span>
                 <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
-                  {selectedQuality}
+                  {lastInputRef.current.quality}
                 </span>
               </div>
             </div>
           </div>
         )}
-        {!isLoading && generationQueue.map((item, index) => {
-          const model = models.find(m => m.id === item.modelId)
-          return (
-            <div key={`queue-${index}`} className="flex flex-col gap-4 group animate-pulse break-inside-avoid opacity-60">
-              <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
-                <div className={`overflow-hidden ${getAspectClass(item.aspectRatio)} bg-surface-container-high flex items-center justify-center`}>
-                  <div className="w-8 h-8 border-3 border-primary/60 border-t-transparent rounded-full animate-spin !font-sans"></div>
+        {/* Remaining queued items (skip first if being processed) */}
+        {!isLoading && generationQueue.length > 0 && (
+          <>
+            {generationQueue.slice(isGenerating ? 1 : 0).map((item, index) => {
+              const model = models.find(m => m.id === item.modelId)
+              const actualIndex = isGenerating ? index + 1 : index
+              return (
+                <div key={`queue-${actualIndex}`} className="flex flex-col gap-4 group animate-pulse break-inside-avoid opacity-60">
+                  <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
+                    <div className={`overflow-hidden ${getAspectClass(item.aspectRatio)} bg-surface-container-high flex items-center justify-center`}>
+                      <div className="w-8 h-8 border-3 border-primary/60 border-t-transparent rounded-full animate-spin !font-sans"></div>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed opacity-60">
+                      &quot;{item.prompt}&quot;
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 pt-1">
+                      <span className="px-2 py-1 bg-primary-container/50 text-on-primary-container text-[9px] font-bold rounded-full uppercase tracking-wide">
+                        {model?.name || 'Queued'}
+                      </span>
+                      <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                        {item.aspectRatio}
+                      </span>
+                      <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
+                        {item.quality}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <p className="text-sm text-on-surface-variant line-clamp-2 italic leading-relaxed opacity-60">
-                  &quot;{item.prompt}&quot;
-                </p>
-                <div className="flex flex-wrap gap-1.5 pt-1">
-                  <span className="px-2 py-1 bg-primary-container/50 text-on-primary-container text-[9px] font-bold rounded-full uppercase tracking-wide">
-                    {model?.name || 'Queued'}
-                  </span>
-                  <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
-                    {item.aspectRatio}
-                  </span>
-                  <span className="px-2 py-1 bg-surface-container-high text-on-surface-variant text-[9px] font-bold rounded-full">
-                    {item.quality}
-                  </span>
-                </div>
-              </div>
-            </div>
-          )
-        })}
+              )
+            })}
+          </>
+        )}
 
         {!isLoading && images.map((image) => {
           return (
@@ -460,6 +529,16 @@ export default function ImageStudio() {
                     title="Regenerate"
                   >
                     <span className="material-symbols-outlined text-base">refresh</span>
+                  </button>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      deleteImage(image)
+                    }}
+                    className="w-8 h-8 rounded-md flex items-center justify-center text-white hover:bg-black/40 transition-colors"
+                    title="Delete"
+                  >
+                    <span className="material-symbols-outlined text-base">delete</span>
                   </button>
                 </div>
               </div>
@@ -759,6 +838,8 @@ export default function ImageStudio() {
           © 2026 eleAI Studio // The Digital Curator
         </p>
       </footer>
+
+      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </main>
   )
 }

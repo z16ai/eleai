@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
-import fs from 'fs'
-import path from 'path'
+import { uploadToR2, getPublicUrl } from '@/lib/r2/client'
 
-// OpenRouter client for FLUX models
 const openRouterClient = new OpenAI({
   baseURL: 'https://openrouter.ai/api/v1',
   apiKey: process.env.OPENROUTER_API_KEY,
 })
 
-// Volcengine Doubao client for Seedream models
-// Correct OpenAI-compatible endpoint for Volcengine Ark
 const doubaoClient = process.env.VOLCENGINE_API_KEY
   ? new OpenAI({
       baseURL: 'https://ark.cn-beijing.volces.com/api/v3',
@@ -18,14 +14,12 @@ const doubaoClient = process.env.VOLCENGINE_API_KEY
     })
   : null
 
-// Model mapping - model ID matches exactly what's required by Doubao
 const doubaoModelMapping: Record<string, string> = {
   'doubao-seedream-4-0': 'doubao-seedream-4-0-250828',
   'doubao-seedream-4-5': 'doubao-seedream-4-5-251128',
   'doubao-seedream-5-0': 'doubao-seedream-5-0-260128',
 }
 
-// OpenRouter model mapping
 const openRouterModelMapping: Record<string, string> = {
   'flux-2-klein': 'black-forest-labs/flux.2-klein-4b',
   'flux-2-max': 'black-forest-labs/flux.2-max',
@@ -33,23 +27,11 @@ const openRouterModelMapping: Record<string, string> = {
   'flux-2-pro': 'black-forest-labs/flux.2-pro',
 }
 
-// Ensure directory exists
-const generateDir = path.join(process.cwd(), 'public', 'aigenerate')
-if (!fs.existsSync(generateDir)) {
-  fs.mkdirSync(generateDir, { recursive: true })
-}
-
-// Parse aspect ratio to size for Doubao
-// Seedream 4.5+ requires minimum 3,686,400 pixels (~1920x1920)
 function getDoubaoSize(aspectRatio: string, quality: string): string {
   const [w, h] = aspectRatio.split(':').map(Number)
 
-  // Base resolution based on quality
-  // 2K quality: max side 2048 (ensures total pixels >= 3.68MP)
-  // 4K quality: max side 3072
   const maxSide = quality === '4K' ? 3072 : 2048;
 
-  // Calculate dimensions maintaining aspect ratio
   let width: number, height: number;
   if (w > h) {
     width = maxSide;
@@ -58,15 +40,12 @@ function getDoubaoSize(aspectRatio: string, quality: string): string {
     height = maxSide;
     width = Math.round(maxSide * w / h);
   } else {
-    // 1:1
     width = maxSide;
     height = maxSide;
   }
 
-  // Ensure minimum total pixels (3686400)
   const totalPixels = width * height;
   if (totalPixels < 3686400) {
-    // Scale up proportionally to meet requirement
     const scale = Math.sqrt(3686400 / totalPixels);
     width = Math.round(width * scale);
     height = Math.round(height * scale);
@@ -75,20 +54,17 @@ function getDoubaoSize(aspectRatio: string, quality: string): string {
   return `${width}x${height}`;
 }
 
-// Process image response and save to local
 async function processImageResponse(imageUrl: string, index: number) {
   if (imageUrl.startsWith('data:')) {
     const base64Data = imageUrl.split(',')[1]
     const buffer = Buffer.from(base64Data, 'base64')
     const filename = `${Date.now()}-${index}.png`
-    const filepath = path.join(generateDir, filename)
-    await fs.promises.writeFile(filepath, buffer)
+    const result = await uploadToR2(buffer, filename, 'image/png', 'aigenerate')
     return {
-      filename,
-      url: `/aigenerate/${filename}`,
+      filename: result.key,
+      url: result.url,
     }
   } else {
-    // Try to fetch remote image and save locally
     try {
       const response = await fetch(imageUrl)
       if (!response.ok) {
@@ -96,15 +72,13 @@ async function processImageResponse(imageUrl: string, index: number) {
       }
       const buffer = Buffer.from(await response.arrayBuffer())
       const filename = `${Date.now()}-${index}.png`
-      const filepath = path.join(generateDir, filename)
-      await fs.promises.writeFile(filepath, buffer)
+      const result = await uploadToR2(buffer, filename, 'image/png', 'aigenerate')
       return {
-        filename,
-        url: `/aigenerate/${filename}`,
+        filename: result.key,
+        url: result.url,
       }
     } catch (error) {
       console.error('Failed to download image:', error)
-      // If fetch fails, return original URL
       return {
         filename: null,
         url: imageUrl,
