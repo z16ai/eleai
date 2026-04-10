@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import GoogleLoginButton from './GoogleLoginButton'
 import Web3ConnectButton from './Web3ConnectButton'
