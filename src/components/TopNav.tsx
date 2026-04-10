@@ -52,10 +52,15 @@ export default function TopNav() {
         const today = new Date().toDateString()
         const lastReset = data.last_reset_date ? new Date(data.last_reset_date).toDateString() : ''
 
-        if (lastReset !== today) {
+        // Check localStorage: only show toast once per day in browser
+        const lastNotified = localStorage.getItem('eleai-daily-points-notified')
+        const shouldNotify = lastNotified !== today && lastReset !== today
+
+        if (shouldNotify) {
           // Daily reset done by cron job, just notify user
           setToastMessage('Daily 88 points credited')
           setTimeout(() => setToastMessage(null), 3000)
+          localStorage.setItem('eleai-daily-points-notified', today)
           console.log('Daily 88 points credited to user')
         }
       } else {
@@ -66,8 +71,10 @@ export default function TopNav() {
 
         if (!insertError) {
           setPoints(88)
+          const today = new Date().toDateString()
           setToastMessage('Daily 88 points credited')
           setTimeout(() => setToastMessage(null), 3000)
+          localStorage.setItem('eleai-daily-points-notified', today)
         } else {
           console.error('Failed to create user points record:', insertError)
           setPoints(0)
