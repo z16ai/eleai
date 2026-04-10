@@ -161,6 +161,11 @@ export default function AudioLab() {
       return false
     }
     return true
+  }).sort((a, b) => {
+    // English (en) first
+    if (a.language === 'en' && b.language !== 'en') return -1
+    if (a.language !== 'en' && b.language === 'en') return 1
+    return 0
   })
 
   // Generate audio
