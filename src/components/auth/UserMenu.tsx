@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
+import LinkAccountsModal from './LinkAccountsModal'
 
 interface User {
   id: string
@@ -17,6 +18,7 @@ export default function UserMenu() {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [showMenu, setShowMenu] = useState(false)
+  const [showLinkModal, setShowLinkModal] = useState(false)
 
   useEffect(() => {
     const getUser = async () => {
@@ -85,9 +87,19 @@ export default function UserMenu() {
           <div className="absolute right-0 mt-2 w-64 bg-surface-container-low rounded-xl shadow-xl border border-outline-variant/20 py-2 z-50">
             <div className="px-4 py-3 border-b border-outline-variant/20">
               <p className="font-semibold text-on-surface truncate">{displayName}</p>
-              <p className="text-sm text-on-surface-variant truncate">{user.email}</p>
+              <p className="text-sm text-on-surface-variant truncate">{user.email || 'Wallet: ' + user.id.slice(0, 10) + '...'}</p>
             </div>
             <div className="py-2">
+              <button
+                onClick={() => {
+                  setShowLinkModal(true)
+                  setShowMenu(false)
+                }}
+                className="w-full flex items-center gap-3 px-4 py-2 text-on-surface hover:bg-surface-container transition-colors"
+              >
+                <span className="material-symbols-outlined text-xl">link</span>
+                Linked Accounts
+              </button>
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-3 px-4 py-2 text-on-surface hover:bg-surface-container transition-colors"
@@ -96,6 +108,14 @@ export default function UserMenu() {
                 Sign Out
               </button>
             </div>
+          </div>
+        </>
+      )}
+
+      <LinkAccountsModal
+        isOpen={showLinkModal}
+        onClose={() => setShowLinkModal(false)}
+      />
           </div>
         </>
       )}
