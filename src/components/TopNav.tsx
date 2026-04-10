@@ -151,13 +151,17 @@ export default function TopNav() {
           {user && points !== null && (
             <>
               <div
-                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200/50 dark:border-amber-700/30 rounded-lg cursor-help"
-                title="88 daily points. No roll-overs."
+                className="flex items-center gap-2 px-3 py-1.5 bg-gradient-to-r from-amber-50 to-yellow-50 dark:from-amber-900/20 dark:to-yellow-900/20 border border-amber-200/50 dark:border-amber-700/30 rounded-lg cursor-default relative group"
               >
                 <img src="/images/points-icon.png" alt="Points" className="w-5 h-5" />
                 <span className="text-sm font-bold text-amber-700 dark:text-amber-300">
                   {points} Pts
                 </span>
+                {/* Custom tooltip */}
+                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-surface-container-highest text-on-surface text-xs rounded-lg shadow-lg border border-outline-variant/10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                  88 daily points. No roll-overs.
+                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-surface-container-highest rotate-45"></div>
+                </div>
               </div>
               <div className="h-5 w-px bg-slate-300 dark:bg-slate-600"></div>
             </>
