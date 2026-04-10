@@ -781,7 +781,11 @@ export default function AudioLab() {
                           </a>
                           <button
                             className="p-2 text-on-surface-variant hover:text-error transition-colors"
-                            onClick={() => setGeneratedAudios(prev => prev.filter(a => a.id !== audio.id))}
+                            onClick={() => {
+                              const updated = generatedAudios.filter(a => a.id !== audio.id)
+                              setGeneratedAudios(updated)
+                              saveAudios(updated)
+                            }}
                             title="Delete"
                           >
                             <span className="material-symbols-outlined">delete</span>
@@ -799,7 +803,33 @@ export default function AudioLab() {
                           </button>
                           <button
                             className="p-2 text-on-surface-variant hover:text-error transition-colors"
-                            onClick={() => setGeneratedAudios(prev => prev.filter(a => a.id !== audio.id))}
+                            onClick={() => {
+                              const updated = generatedAudios.filter(a => a.id !== audio.id)
+                              setGeneratedAudios(updated)
+                              saveAudios(updated)
+                            }}
+                            title="Delete"
+                          >
+                            <span className="material-symbols-outlined">delete</span>
+                          </button>
+                        </>
+                      )}
+                      {audio.status === 'failed' && (
+                        <>
+                          <button
+                            className="p-2 text-on-surface-variant hover:text-primary transition-colors"
+                            onClick={() => regenerate(audio)}
+                            title="Regenerate with this text and voice"
+                          >
+                            <span className="material-symbols-outlined">refresh</span>
+                          </button>
+                          <button
+                            className="p-2 text-on-surface-variant hover:text-error transition-colors"
+                            onClick={() => {
+                              const updated = generatedAudios.filter(a => a.id !== audio.id)
+                              setGeneratedAudios(updated)
+                              saveAudios(updated)
+                            }}
                             title="Delete"
                           >
                             <span className="material-symbols-outlined">delete</span>
