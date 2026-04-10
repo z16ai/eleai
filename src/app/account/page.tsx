@@ -13,6 +13,10 @@ interface Identity {
   provider: string
   email?: string
   created_at: string
+  identity_data?: {
+    address?: string
+    chain?: string
+  }
 }
 
 export default function AccountPage() {
@@ -21,6 +25,8 @@ export default function AccountPage() {
   const [pageLoading, setPageLoading] = useState(true)
   const [identities, setIdentities] = useState<Identity[]>([])
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
+  const [showAddEmail, setShowAddEmail] = useState(false)
+  const [showLinkWeb3, setShowLinkWeb3] = useState(false)
   const [user, setUser] = useState<any>(null)
   const supabase = createClient()
 
@@ -40,6 +46,7 @@ export default function AccountPage() {
           provider: id.provider,
           email: id.identity_data?.email,
           created_at: id.created_at,
+          identity_data: id.identity_data,
         }))
         setIdentities(mapped)
       }
@@ -66,6 +73,7 @@ export default function AccountPage() {
         text: 'Confirmation email sent! Please check your inbox and click the link to confirm.'
       })
       setEmail('')
+      setShowAddEmail(false)
       loadUserAndIdentities()
     }
 
@@ -200,115 +208,167 @@ export default function AccountPage() {
         </header>
 
         <div className="max-w-2xl mx-auto space-y-8">
-          {/* Account Info */}
+          {/* Account Core Info */}
           <div className="p-6 bg-surface-container-low rounded-xl border border-outline-variant/10">
             <h3 className="text-lg font-bold text-on-surface mb-4">Account Info</h3>
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-sm text-on-surface-variant">User ID</span>
-                <span className="text-sm font-mono text-on-surface bg-surface-container-high px-2 py-1 rounded-md">
-                  {user.id.slice(0, 8)}...
-                </span>
-              </div>
-              {userEmail && (
-                <div className="flex justify-between items-center">
-                  <span className="text-sm text-on-surface-variant">Email</span>
-                  <span className="text-sm font-semibold text-on-surface">
-                    {userEmail}
-                  </span>
+            <div className="space-y-4">
+              {/* User ID - full, click to copy */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm text-on-surface-variant">User ID</span>
                 </div>
-              )}
-            </div>
-          </div>
-
-          {/* Linked Accounts */}
-          <div className="p-6 bg-surface-container-low rounded-xl border border-outline-variant/10">
-            <h3 className="text-lg font-bold text-on-surface mb-4">Linked Accounts</h3>
-            <div className="space-y-2 mb-6">
-              {identities.map((identity) => (
-                <div
-                  key={identity.id}
-                  className="flex items-center justify-between p-3 bg-surface-container rounded-lg"
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(user.id)
+                    setMessage({ type: 'success', text: 'User ID copied to clipboard' })
+                    setTimeout(() => setMessage(null), 2000)
+                  }}
+                  className="w-full flex items-center justify-between px-3 py-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 transition-colors cursor-pointer"
                 >
-                  <div className="flex flex-col">
-                    <span className="text-sm font-semibold text-on-surface">
-                      {getProviderName(identity.provider)}
-                    </span>
-                    {identity.email && (
-                      <span className="text-xs text-on-surface-variant">
-                        {identity.email}
-                      </span>
-                    )}
-                  </div>
-                  {identities.length > 1 && (
-                    <button
-                      onClick={() => handleUnlink(identity.provider)}
-                      className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
-                      title="Unlink"
-                    >
-                      <span className="material-symbols-outlined text-lg">link_off</span>
-                    </button>
-                  )}
+                  <code className="text-sm font-mono text-on-surface break-all">
+                    {user.id}
+                  </code>
+                  <span className="material-symbols-outlined text-on-surface-variant ml-2">content_copy</span>
+                </button>
+              </div>
+
+              {/* Email */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm text-on-surface-variant">Email</span>
                 </div>
-              ))}
+                {userEmail ? (
+                  <div className="flex items-center justify-between px-3 py-2 bg-surface-container rounded-lg border border-outline-variant">
+                    <span className="text-sm font-semibold text-on-surface">
+                      {userEmail}
+                    </span>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowAddEmail(!showAddEmail)}
+                    className="w-full flex items-center justify-center px-3 py-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 hover:bg-surface-container-high transition-colors text-sm text-primary font-semibold"
+                  >
+                    {showAddEmail ? 'Cancel' : '+ Bind Email Address'}
+                  </button>
+                )}
+                {!userEmail && showAddEmail && (
+                  <form onSubmit={handleAddEmail} className="mt-3 space-y-3 p-3 bg-surface-container rounded-lg border border-outline-variant">
+                    <input
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      className="w-full px-3 py-2 bg-surface rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
+                      disabled={loading}
+                    />
+                    <button
+                      type="submit"
+                      disabled={loading || !email.trim()}
+                      className="w-full py-2 bg-primary text-on-primary rounded-lg font-semibold hover:bg-primary-dim transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {loading ? 'Sending...' : 'Send Confirmation Email'}
+                    </button>
+                  </form>
+                )}
+              </div>
+
+              {/* Web3 Wallet */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm text-on-surface-variant">Web3 Wallet</span>
+                </div>
+                {hasWeb3 ? (
+                  <div className="space-y-2">
+                    {identities.filter(i => i.provider === 'web3').map((identity) => (
+                      <div
+                        key={identity.id}
+                        className="flex items-center justify-between px-3 py-2 bg-surface-container rounded-lg border border-outline-variant"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-on-surface">
+                            {identity.identity_data?.chain ? identity.identity_data.chain : 'Web3'}
+                          </span>
+                          {identity.identity_data?.address && (
+                            <code className="text-xs text-on-surface-variant font-mono">
+                              {identity.identity_data.address.slice(0, 6)}...{identity.identity_data.address.slice(-4)}
+                            </code>
+                          )}
+                        </div>
+                        {identities.length > 1 && (
+                          <button
+                            onClick={() => handleUnlink(identity.provider)}
+                            className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
+                            title="Unlink"
+                          >
+                            <span className="material-symbols-outlined text-lg">link_off</span>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setShowLinkWeb3(!showLinkWeb3)}
+                    className="w-full flex items-center justify-center px-3 py-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 hover:bg-surface-container-high transition-colors text-sm text-primary font-semibold"
+                  >
+                    {showLinkWeb3 ? 'Cancel' : '+ Bind Web3 Wallet'}
+                  </button>
+                )}
+                {!hasWeb3 && showLinkWeb3 && (
+                  <div className="mt-3 p-3 bg-surface-container rounded-lg border border-outline-variant">
+                    <Web3ConnectButton isLoggedIn={true} />
+                  </div>
+                )}
+              </div>
+
+              {/* Google Account */}
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <span className="text-sm text-on-surface-variant">Google Account</span>
+                </div>
+                {hasGoogle ? (
+                  <div className="space-y-2">
+                    {identities.filter(i => i.provider === 'google').map((identity) => (
+                      <div
+                        key={identity.id}
+                        className="flex items-center justify-between px-3 py-2 bg-surface-container rounded-lg border border-outline-variant"
+                      >
+                        <div className="flex flex-col">
+                          <span className="text-sm font-semibold text-on-surface">
+                            Google
+                          </span>
+                          {identity.email && (
+                            <span className="text-xs text-on-surface-variant">
+                              {identity.email}
+                            </span>
+                          )}
+                        </div>
+                        {identities.length > 1 && (
+                          <button
+                            onClick={() => handleUnlink(identity.provider)}
+                            className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
+                            title="Unlink"
+                          >
+                            <span className="material-symbols-outlined text-lg">link_off</span>
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => handleLinkGoogle()}
+                    className="w-full flex items-center justify-center px-3 py-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 hover:bg-surface-container-high transition-colors text-sm text-primary font-semibold"
+                  >
+                    + Link Google Account
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Note */}
-            <div className="mb-6 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/30 rounded-lg">
-              <p className="text-sm text-amber-800 dark:text-amber-300">
-                <strong>Note:</strong> To merge two existing accounts, sign in to one account here and link the other account.
-              </p>
-            </div>
-
-            {/* Add Email */}
-            {!hasEmail && (
-              <div className="mb-6 p-4 border border-outline-variant/10 rounded-xl">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant block mb-3">
-                  Add Email Address
-                </label>
-                <form onSubmit={handleAddEmail} className="space-y-3">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="you@example.com"
-                    className="w-full px-3 py-2 bg-surface-container rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                    disabled={loading}
-                  />
-                  <button
-                    type="submit"
-                    disabled={loading || !email.trim()}
-                    className="w-full py-2 bg-primary text-on-primary rounded-lg font-semibold hover:bg-primary-dim transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {loading ? 'Sending...' : 'Send Confirmation Email'}
-                  </button>
-                </form>
-              </div>
-            )}
-
-            {/* Link Google */}
-            {!hasGoogle && (
-              <div className="mb-6">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant block mb-3">
-                  Link Google Account
-                </label>
-                <GoogleLoginButton onClick={handleLinkGoogle} />
-              </div>
-            )}
-
-            {/* Link Web3 Wallet */}
-            {!hasWeb3 && (
-              <div className="mb-6">
-                <label className="text-[10px] font-bold uppercase tracking-wider text-on-surface-variant block mb-3">
-                  Link Web3 Wallet
-                </label>
-                <Web3ConnectButton isLoggedIn={true} />
-              </div>
-            )}
-
-            {/* Message */}
             {message && (
-              <div className={`p-3 rounded-lg text-sm ${
+              <div className={`p-3 rounded-lg text-sm mt-4 ${
                 message.type === 'success'
                   ? 'bg-success-container text-on-success-container'
                   : 'bg-error-container text-on-error-container'
@@ -316,6 +376,13 @@ export default function AccountPage() {
                 {message.text}
               </div>
             )}
+
+            {/* Warning Note */}
+            <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/30 rounded-lg">
+              <p className="text-sm text-amber-800 dark:text-amber-300">
+                <strong>Note:</strong> To merge two existing accounts, sign in to one account here and link the other account.
+              </p>
+            </div>
           </div>
         </div>
       </main>
