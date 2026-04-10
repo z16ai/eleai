@@ -157,10 +157,10 @@ export default function TopNav() {
                 <span className="text-sm font-bold text-amber-700 dark:text-amber-300">
                   {points} Pts
                 </span>
-                {/* Custom tooltip */}
-                <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 px-3 py-1.5 bg-surface-container-highest text-on-surface text-xs rounded-lg shadow-lg border border-outline-variant/10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
+                {/* Custom tooltip - position below */}
+                <div className="absolute top-full left-1/2 -translate-x-1/2 mt-2 px-3 py-1.5 bg-surface-container-highest text-on-surface text-xs rounded-lg shadow-lg border border-outline-variant/10 whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50">
                   88 daily points. No roll-overs.
-                  <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-surface-container-highest rotate-45"></div>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-2 h-2 bg-surface-container-highest rotate-45"></div>
                 </div>
               </div>
               <div className="h-5 w-px bg-slate-300 dark:bg-slate-600"></div>
