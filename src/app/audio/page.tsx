@@ -915,11 +915,7 @@ export default function AudioLab() {
         </div>
       )}
 
-      <footer className="py-8 mt-12 border-t border-outline-variant/10">
-        <p className="font-manrope text-[10px] font-bold text-outline-variant uppercase tracking-[0.2em] opacity-30 text-center">
-          © 2026 eleAI Studio // The Digital Curator
-        </p>
-      </footer>
+      
     </main>
   )
 }
