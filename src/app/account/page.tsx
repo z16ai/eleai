@@ -15,19 +15,16 @@ interface Web3Info {
 export default function AccountPage() {
   const { user, loading: authLoading, signOut } = useAuth()
   const [web3Info, setWeb3Info] = useState<Web3Info | null>(null)
-  const [email, setEmail] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const supabase = createClient()
+
+  // Get email immediately from auth context - no need to wait
+  const email = user?.email || null
 
   useEffect(() => {
     if (authLoading) return
 
     if (user) {
-      // Get email directly from user - already loaded in auth context
-      if (user.email) {
-        setEmail(user.email)
-      }
-
       // Try to get web3 info directly from user_metadata first (no DB query needed)
       const sub = user.user_metadata?.sub
       if (sub && sub.startsWith('web3:')) {
