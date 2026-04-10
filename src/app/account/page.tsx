@@ -25,7 +25,7 @@ export default function AccountPage() {
     if (authLoading) return
 
     if (user) {
-      // Try to get web3 info directly from user_metadata first (no DB query needed)
+      // Try to get web3 from user_metadata (native web3 login)
       const sub = user.user_metadata?.sub
       if (sub && sub.startsWith('web3:')) {
         const parts = sub.split(':')
@@ -38,20 +38,25 @@ export default function AccountPage() {
         }
       }
 
-      // For email users with linked web3, need to check DB
-      const loadWeb3FromDB = async () => {
-        const { data: profileData, error } = await supabase
-          .from('user_profiles')
-          .select('web3_account')
-          .eq('id', user.id)
-          .single()
-        if (!error && profileData?.web3_account && profileData.web3_account.address) {
-          setWeb3Info(profileData.web3_account as Web3Info)
+      // Get web3 from linked identities (already in memory from auth)
+      const loadWeb3FromIdentities = async () => {
+        const { data } = await supabase.auth.getUserIdentities()
+        if (data?.identities) {
+          // Find any web3 identity
+          const web3Identity = data.identities.find(id =>
+            id.provider === 'web3' || !!id.identity_data?.address
+          )
+          if (web3Identity?.identity_data) {
+            setWeb3Info({
+              chain: web3Identity.identity_data.chain || 'ethereum',
+              address: web3Identity.identity_data.address
+            })
+          }
         }
         setLoading(false)
       }
 
-      loadWeb3FromDB()
+      loadWeb3FromIdentities()
     } else {
       setLoading(false)
     }
