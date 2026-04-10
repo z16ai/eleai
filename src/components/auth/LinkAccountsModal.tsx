@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import GoogleLoginButton from './GoogleLoginButton'
 
@@ -131,8 +132,8 @@ export default function LinkAccountsModal({ isOpen, onClose }: LinkAccountsModal
   // Check if Google already linked
   const hasGoogle = identities.some(i => i.provider === 'google')
 
-  return (
-    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+  const content = (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
       <div
         className="absolute inset-0 bg-black/50 backdrop-blur-sm"
         onClick={onClose}
@@ -238,4 +239,7 @@ export default function LinkAccountsModal({ isOpen, onClose }: LinkAccountsModal
       </div>
     </div>
   )
+
+  // Portal to document.body to escape stacking context from TopNav
+  return createPortal(content, document.body)
 }
