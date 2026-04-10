@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Footer from '@/components/Footer'
 
 interface GeneratedVideo {
   id: string
@@ -353,7 +354,7 @@ export default function VideoStudio() {
   const currentModel = models.find(m => m.id === selectedModel)
 
   return (
-    <main className="ml-20 min-h-screen px-12 pt-12 pb-48">
+    <main className="ml-20 min-h-screen px-12 pt-20 pb-48">
       <header className="flex justify-between items-end mb-12">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -809,11 +810,7 @@ export default function VideoStudio() {
         </div>
       )}
 
-      <footer className="fixed bottom-0 right-0 p-8 z-0">
-        <p className="font-manrope text-[10px] font-bold text-outline-variant uppercase tracking-[0.2em] opacity-30 select-none">
-          © 2026 eleAI Studio // The Digital Curator
-        </p>
-      </footer>
+      <Footer />
     </main>
   )
 }

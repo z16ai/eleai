@@ -5,13 +5,17 @@ import { usePathname } from 'next/navigation'
 import AuthButton from './auth/AuthButton'
 
 const workspaceItems = [
-  { href: '/image', label: 'Image' },
-  { href: '/video', label: 'Video' },
-  { href: '/audio', label: 'Audio' },
+  { href: '/image', label: 'Image', icon: 'image' },
+  { href: '/video', label: 'Video', icon: 'movie' },
+  { href: '/audio', label: 'Audio', icon: 'graphic_eq' },
+]
+
+const navItems = [
+  { href: '/plaza', label: 'Plaza', icon: 'storefront' },
 ]
 
 export default function TopNav() {
-  const pathname = usePathname()
+  const pathname = usePathname() || ''
 
   const isActive = (href: string) => {
     return pathname.startsWith(href)
@@ -35,28 +39,39 @@ export default function TopNav() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
                   isActive(item.href)
                     ? 'bg-primary/10 text-primary'
                     : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                 }`}
               >
+                <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: isActive(item.href) ? "'FILL' 1" : "'FILL' 0" }}>
+                  {item.icon}
+                </span>
                 {item.label}
               </Link>
             ))}
-            
-            <div className="h-5 w-px bg-slate-200 dark:bg-slate-700 mx-2"></div>
-            
-            <Link
-              href="/plaza"
-              className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
-                isActive('/plaza')
-                  ? 'bg-primary/10 text-primary'
-                  : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-              }`}
-            >
-              Plaza
-            </Link>
+          </div>
+
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+          <div className="flex items-center gap-1">
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  isActive(item.href)
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: isActive(item.href) ? "'FILL' 1" : "'FILL' 0" }}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </Link>
+            ))}
           </div>
         </div>
 

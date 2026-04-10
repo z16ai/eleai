@@ -391,23 +391,20 @@ export default function AudioLab() {
   const currentModelName = models.find(m => m.id === selectedModel)?.name
 
   return (
-    <main className="ml-20 min-h-screen px-8 pt-10 pb-48 bg-surface-container-low">
-      <header className="max-w-7xl mx-auto mb-8">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="px-2 py-0.5 bg-tertiary-container/20 text-tertiary text-[10px] font-bold tracking-widest uppercase rounded-full">
+    <main className="min-h-screen px-12 pt-20 pb-8 bg-surface-container-low">
+      <header className="mb-12 flex justify-between items-end">
+        <div>
+          <p className="font-headline text-sm font-semibold text-primary tracking-tight mb-1 uppercase">
+            Workbench
+          </p>
+          <h1 className="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">
             Audio Lab
-          </span>
+          </h1>
         </div>
-        <h1 className="text-4xl font-headline font-extrabold tracking-tight text-on-surface">
-          Text to Speech & Voice Cloning
-        </h1>
-        <p className="text-on-surface-variant mt-2 font-medium">
-          Transform any text into natural-sounding speech with AI-powered voice cloning.
-        </p>
         {generatingQueue.length > 0 && (
-          <div className="mt-4 inline-block px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-md">
-            {generatingQueue.length} {generatingQueue.length === 1 ? 'item in queue' : 'items in queue'}
-          </div>
+          <span className="px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-md">
+            {generatingQueue.length} {generatingQueue.length === 1 ? 'in queue' : 'in queue'}
+          </span>
         )}
       </header>
 
@@ -833,6 +830,12 @@ export default function AudioLab() {
           <p className="text-sm font-medium">{toastMessage}</p>
         </div>
       )}
+
+      <footer className="py-8 mt-12 border-t border-outline-variant/10">
+        <p className="font-manrope text-[10px] font-bold text-outline-variant uppercase tracking-[0.2em] opacity-30 text-center">
+          © 2026 eleAI Studio // The Digital Curator
+        </p>
+      </footer>
     </main>
   )
 }

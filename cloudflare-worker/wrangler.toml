@@ -1,0 +1,7 @@
+name = "eleai-r2-worker"
+main = "r2-worker.js"
+compatibility_date = "2024-01-01"
+
+[[r2_buckets]]
+binding = "ELEAI"
+bucket_name = "eleai"
