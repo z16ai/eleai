@@ -1,142 +1,66 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import TopNav from '@/components/TopNav'
 import Footer from '@/components/Footer'
-import GoogleLoginButton from '@/components/auth/GoogleLoginButton'
-import Web3ConnectButton from '@/components/auth/Web3ConnectButton'
+import { useAuth } from '@/hooks/useAuth'
 
-interface Identity {
-  id: string
-  provider: string
-  email?: string
-  created_at: string
-  identity_data?: {
-    address?: string
-    chain?: string
-  }
+interface Web3Info {
+  chain?: string
+  address?: string
 }
 
 export default function AccountPage() {
-  const [email, setEmail] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [pageLoading, setPageLoading] = useState(true)
-  const [identities, setIdentities] = useState<Identity[]>([])
-  const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
-  const [showAddEmail, setShowAddEmail] = useState(false)
-  const [showLinkWeb3, setShowLinkWeb3] = useState(false)
-  const [user, setUser] = useState<any>(null)
-  const loadingRef = useRef(false)
+  const { user, loading: authLoading, signOut } = useAuth()
+  const [web3Info, setWeb3Info] = useState<Web3Info | null>(null)
+  const [email, setEmail] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
   const supabase = createClient()
 
   useEffect(() => {
-    if (!loadingRef.current) {
-      loadingRef.current = true
-      loadUserAndIdentities()
-    }
-  }, [])
+    if (authLoading) return
 
-  const loadUserAndIdentities = async () => {
-    setPageLoading(true)
-    const { data: { user } } = await supabase.auth.getUser()
-    setUser(user)
     if (user) {
-      const { data } = await supabase.auth.getUserIdentities()
-      if (data?.identities) {
-        const mapped: Identity[] = data.identities.map(id => ({
-          id: id.id,
-          provider: id.provider,
-          email: id.identity_data?.email,
-          created_at: id.created_at,
-          identity_data: id.identity_data,
-        }))
-        setIdentities(mapped)
+      // Get email directly from user - already loaded in auth context
+      if (user.email) {
+        setEmail(user.email)
       }
-    }
-    setPageLoading(false)
-  }
 
-  const handleAddEmail = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!email.trim()) return
-
-    setLoading(true)
-    setMessage(null)
-
-    const { data, error } = await supabase.auth.updateUser({
-      email: email.trim()
-    })
-
-    if (error) {
-      setMessage({ type: 'error', text: error.message })
-    } else {
-      setMessage({
-        type: 'success',
-        text: 'Confirmation email sent! Please check your inbox and click the link to confirm.'
-      })
-      setEmail('')
-      setShowAddEmail(false)
-      loadUserAndIdentities()
-    }
-
-    setLoading(false)
-  }
-
-  const handleLinkGoogle = async () => {
-    const currentPath = window.location.pathname + window.location.search
-    const { data, error } = await supabase.auth.linkIdentity({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`
+      // Try to get web3 info directly from user_metadata first (no DB query needed)
+      const sub = user.user_metadata?.sub
+      if (sub && sub.startsWith('web3:')) {
+        const parts = sub.split(':')
+        if (parts.length >= 3) {
+          const chain = parts[1]
+          const address = parts.slice(2).join(':')
+          setWeb3Info({ chain, address })
+          setLoading(false)
+          return
+        }
       }
-    })
 
-    if (error) {
-      setMessage({ type: 'error', text: error.message })
-    } else if (data.url) {
-      window.location.href = data.url
-    }
-  }
+      // For email users with linked web3, need to check DB
+      const loadWeb3FromDB = async () => {
+        const { data: profileData, error } = await supabase
+          .from('user_profiles')
+          .select('web3_account')
+          .eq('id', user.id)
+          .single()
+        if (!error && profileData?.web3_account && profileData.web3_account.address) {
+          setWeb3Info(profileData.web3_account as Web3Info)
+        }
+        setLoading(false)
+      }
 
-  const handleUnlink = async (provider: string) => {
-    // Can't unlink the only identity
-    if (identities.length <= 1) {
-      setMessage({ type: 'error', text: 'Cannot unlink the only linked identity' })
-      return
-    }
-
-    if (!confirm(`Are you sure you want to unlink ${getProviderName(provider)}?`)) return
-
-    const { error } = await supabase.auth.unlinkIdentity({
-      provider
-    })
-
-    if (error) {
-      setMessage({ type: 'error', text: error.message })
+      loadWeb3FromDB()
     } else {
-      setMessage({ type: 'success', text: `Successfully unlinked ${getProviderName(provider)}` })
-      loadUserAndIdentities()
+      setLoading(false)
     }
-  }
+  }, [user, authLoading])
 
-  const getProviderName = (provider: string) => {
-    switch (provider) {
-      case 'email': return 'Email'
-      case 'google': return 'Google'
-      case 'web3': return 'Web3 Wallet'
-      case 'phone': return 'Phone'
-      default: return provider
-    }
-  }
-
-  // Check if already linked
-  const hasEmail = identities.some(i => i.provider === 'email' || !!i.email)
-  const hasGoogle = identities.some(i => i.provider === 'google')
-  const hasWeb3 = identities.some(i => i.provider === 'web3')
-
-  if (pageLoading) {
+  if (authLoading || loading) {
     return (
       <>
         <TopNav />
@@ -147,7 +71,7 @@ export default function AccountPage() {
                 Account
               </p>
               <h1 className="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">
-                Account Management
+                Account
               </h1>
             </div>
           </header>
@@ -172,7 +96,7 @@ export default function AccountPage() {
                 Account
               </p>
               <h1 className="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">
-                Account Management
+                Account
               </h1>
             </div>
           </header>
@@ -191,8 +115,6 @@ export default function AccountPage() {
     )
   }
 
-  const userEmail = user.email || identities.find(i => i.email)?.email
-
   return (
     <>
       <TopNav />
@@ -203,127 +125,59 @@ export default function AccountPage() {
               Account
             </p>
             <h1 className="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">
-              Account Management
+              Account
             </h1>
             <p className="text-on-surface-variant mt-2">
-              Manage your linked login methods. You can sign in with any linked account.
+              View your account information.
             </p>
           </div>
         </header>
 
         <div className="max-w-2xl mx-auto space-y-8">
-          {/* Account Core Info */}
           <div className="p-6 bg-surface-container-low rounded-xl border border-outline-variant/10">
-            <h3 className="text-lg font-bold text-on-surface mb-4">Account Info</h3>
-            <div className="space-y-4">
+            <h3 className="text-lg font-bold text-on-surface mb-4">Account Information</h3>
+            <div className="space-y-6">
               {/* Email */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm text-on-surface-variant">Email</span>
-                </div>
-                {userEmail ? (
-                  <div className="flex items-center justify-between px-3 py-2 bg-surface-container rounded-lg border border-outline-variant">
-                    <span className="text-sm font-semibold text-on-surface">
-                      {userEmail}
+              {email && (
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm text-on-surface-variant">Email</span>
+                  </div>
+                  <div className="px-1 py-2">
+                    <span className="text-base font-semibold text-on-surface">
+                      {email}
                     </span>
                   </div>
-                ) : (
-                  <button
-                    onClick={() => setShowAddEmail(!showAddEmail)}
-                    className="w-full flex items-center justify-center px-3 py-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 hover:bg-surface-container-high transition-colors text-sm text-primary font-semibold"
-                  >
-                    {showAddEmail ? 'Cancel' : '+ Bind Email Address'}
-                  </button>
-                )}
-                {!userEmail && showAddEmail && (
-                  <form onSubmit={handleAddEmail} className="mt-3 space-y-3 p-3 bg-surface-container rounded-lg border border-outline-variant">
-                    <input
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      className="w-full px-3 py-2 bg-surface rounded-lg border border-outline-variant focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                      disabled={loading}
-                    />
-                    <button
-                      type="submit"
-                      disabled={loading || !email.trim()}
-                      className="w-full py-2 bg-primary text-on-primary rounded-lg font-semibold hover:bg-primary-dim transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                    >
-                      {loading ? 'Sending...' : 'Send Confirmation Email'}
-                    </button>
-                  </form>
-                )}
-              </div>
-
-              {/* Web3 Wallet */}
-              <div>
-                <div className="flex justify-between items-center mb-1">
-                  <span className="text-sm text-on-surface-variant">Web3 Wallet</span>
                 </div>
-                {hasWeb3 ? (
-                  <div className="space-y-2">
-                    {identities.filter(i => i.provider === 'web3').map((identity) => (
-                      <div
-                        key={identity.id}
-                        className="flex items-center justify-between px-3 py-2 bg-surface-container rounded-lg border border-outline-variant"
-                      >
-                        <div className="flex flex-col">
-                          <span className="text-sm font-semibold text-on-surface">
-                            {identity.identity_data?.chain ? identity.identity_data.chain : 'Web3'}
-                          </span>
-                          {identity.identity_data?.address && (
-                            <code className="text-xs text-on-surface-variant font-mono">
-                              {identity.identity_data.address.slice(0, 6)}...{identity.identity_data.address.slice(-4)}
-                            </code>
-                          )}
-                        </div>
-                        {identities.length > 1 && (
-                          <button
-                            onClick={() => handleUnlink(identity.provider)}
-                            className="p-1.5 text-on-surface-variant hover:text-error hover:bg-error-container/20 rounded transition-colors"
-                            title="Unlink"
-                          >
-                            <span className="material-symbols-outlined text-lg">link_off</span>
-                          </button>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <button
-                    onClick={() => setShowLinkWeb3(!showLinkWeb3)}
-                    className="w-full flex items-center justify-center px-3 py-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 hover:bg-surface-container-high transition-colors text-sm text-primary font-semibold"
-                  >
-                    {showLinkWeb3 ? 'Cancel' : '+ Bind Web3 Wallet'}
-                  </button>
-                )}
-                {!hasWeb3 && showLinkWeb3 && (
-                  <div className="mt-3 p-3 bg-surface-container rounded-lg border border-outline-variant">
-                    <Web3ConnectButton isLoggedIn={true} />
-                  </div>
-                )}
-              </div>
+              )}
 
-              {/* Link another Google is not needed - email is already shown in Email row */}
+              {/* Web3 Account */}
+              {web3Info && web3Info.address && (
+                <div>
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-sm text-on-surface-variant">Web3 Account</span>
+                  </div>
+                  <div className="px-1 py-2">
+                    <div className="flex flex-col">
+                      <span className="text-base font-semibold text-on-surface">
+                        {web3Info.chain || 'Web3'}
+                      </span>
+                      <code className="text-sm text-on-surface-variant font-mono mt-1">
+                        {web3Info.address}
+                      </code>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Note */}
-            {message && (
-              <div className={`p-3 rounded-lg text-sm mt-4 ${
-                message.type === 'success'
-                  ? 'bg-success-container text-on-success-container'
-                  : 'bg-error-container text-on-error-container'
-              }`}>
-                {message.text}
-              </div>
-            )}
-
-            {/* Warning Note */}
-            <div className="mt-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200/50 dark:border-amber-700/30 rounded-lg">
-              <p className="text-sm text-amber-800 dark:text-amber-300">
-                <strong>Note:</strong> To merge two existing accounts, sign in to one account here and link the other account.
-              </p>
+            <div className="mt-8 pt-6 border-t border-outline-variant/10">
+              <button
+                onClick={signOut}
+                className="px-6 py-2 bg-error text-on-error rounded-lg font-semibold hover:bg-error-dim transition-colors"
+              >
+                Sign Out
+              </button>
             </div>
           </div>
         </div>

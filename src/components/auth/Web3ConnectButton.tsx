@@ -80,7 +80,7 @@ export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectBut
     setConnectingWallet(wallet.name)
     try {
       console.log('Starting Web3 login for:', wallet.name, wallet.chain)
-      
+
       // Force permission request to show account selector (allows switching between wallets)
       if (wallet.chain === 'ethereum' && window.ethereum) {
         await window.ethereum.request({
@@ -90,14 +90,34 @@ export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectBut
       } else if (wallet.chain === 'solana' && window.solana) {
         await window.solana.connect()
       }
-      
-      const { data, error } = await supabase.auth.signInWithWeb3({
-        chain: wallet.chain as 'ethereum',
-        statement: 'I accept the Terms of Service at https://eleai.studio/tos'
-      })
-      console.log('Web3 login result:', { data, error })
-      if (error) {
-        alert(error.message)
+
+      if (isLoggedIn) {
+        // Link to current logged in account
+        const currentPath = window.location.pathname + window.location.search
+        const { data, error } = await supabase.auth.linkIdentity({
+          provider: 'web3',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`,
+            chain: wallet.chain,
+            statement: 'I accept the Terms of Service at https://eleai.studio/tos'
+          }
+        })
+        console.log('Link Web3 result:', { data, error })
+        if (error) {
+          alert(error.message)
+        } else if (data.url) {
+          window.location.href = data.url
+        }
+      } else {
+        // Sign in with Web3
+        const { data, error } = await supabase.auth.signInWithWeb3({
+          chain: wallet.chain as 'ethereum',
+          statement: 'I accept the Terms of Service at https://eleai.studio/tos'
+        })
+        console.log('Web3 login result:', { data, error })
+        if (error) {
+          alert(error.message)
+        }
       }
     } catch (err) {
       console.error('Signing error:', err)

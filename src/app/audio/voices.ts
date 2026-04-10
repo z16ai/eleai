@@ -316,7 +316,7 @@ const tts1Voices: VoiceInfo[] = [
     modelSupport: ['doubao-text-to-speech/seed-tts-1.0-concurr'],
   },
   {
-    id: 'gaolengyujie',
+    id: 'gaolengyujie-emo',
     name: '高冷御姐',
     speakerId: 'zh_female_gaolengyujie_emo_v2_mars_bigtts',
     gender: 'female',
@@ -366,7 +366,7 @@ const tts1Voices: VoiceInfo[] = [
     modelSupport: ['doubao-text-to-speech/seed-tts-1.0-concurr'],
   },
   {
-    id: 'yourougongzi',
+    id: 'yourougongzi-emo',
     name: '优柔公子',
     speakerId: 'zh_male_yourougongzi_emo_v2_mars_bigtts',
     gender: 'male',
@@ -1896,7 +1896,7 @@ const tts1Voices: VoiceInfo[] = [
     modelSupport: ['doubao-text-to-speech/seed-tts-1.0-concurr'],
   },
   {
-    id: 'gaolengyujie',
+    id: 'gaolengyujie-moon',
     name: '高冷御姐',
     speakerId: 'zh_female_gaolengyujie_moon_bigtts',
     gender: 'female',
@@ -2126,7 +2126,7 @@ const tts1Voices: VoiceInfo[] = [
     modelSupport: ['doubao-text-to-speech/seed-tts-1.0-concurr'],
   },
   {
-    id: 'yourougongzi',
+    id: 'yourougongzi-icl',
     name: '优柔公子',
     speakerId: 'ICL_zh_male_yourougongzi_tob',
     gender: 'male',

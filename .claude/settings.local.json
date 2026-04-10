@@ -37,7 +37,11 @@
       "WebFetch(domain:bailian.console.aliyun.com)",
       "WebSearch",
       "Bash(git commit:*)",
-      "Bash(npx supabase:*)"
+      "Bash(npx supabase:*)",
+      "Bash(ls -la /Users/axin/localproject/eleai-studio/*.png *.ico *.svg)",
+      "WebFetch(domain:supabase.com)",
+      "Bash(Co-Authored-By: Claude Opus 4.6)",
+      "Bash(psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"UPDATE public.user_profiles SET web3_account = NULL, updated_at = NOW\\(\\) WHERE email = 'mydoto@gmail.com'\")"
     ]
   }
 }

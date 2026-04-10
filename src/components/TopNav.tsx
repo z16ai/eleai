@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import AuthButton from './auth/AuthButton'
 import { useAuth } from '@/hooks/useAuth'
 import { useState, useEffect } from 'react'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from '@/lib/supabase/client'
 
 const workspaceItems = [
   { href: '/image', label: 'Image', icon: 'image' },
@@ -33,10 +33,7 @@ export default function TopNav() {
       return
     }
 
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
+    const supabase = createClient()
 
     async function fetchPoints() {
       const { data, error } = await supabase
