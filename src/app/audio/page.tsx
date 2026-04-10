@@ -392,15 +392,15 @@ export default function AudioLab() {
   const currentModelName = models.find(m => m.id === selectedModel)?.name
 
   return (
-    <main className="min-h-screen px-12 pt-20 pb-8 bg-surface-container-low">
-      <header className="mb-12 flex justify-between items-end">
+    <main className="min-h-screen px-12 pt-20 pb-48">
+      <header className="max-w-7xl mx-auto mb-12 flex justify-between items-end">
         <div>
-          <p className="font-headline text-sm font-semibold text-primary tracking-tight mb-1 uppercase">
-            Workbench
-          </p>
-          <h1 className="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">
-            Audio Lab
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="px-2 py-0.5 bg-tertiary-container/20 text-tertiary text-[10px] font-bold tracking-widest uppercase rounded-full">
+              Creative Suite
+            </span>
+          </div>
+          <h1 className="text-4xl font-headline font-extrabold tracking-tight text-on-surface">Audio Lab</h1>
         </div>
         {generatingQueue.length > 0 && (
           <span className="px-3 py-1.5 bg-primary/10 text-primary text-sm font-medium rounded-md">
