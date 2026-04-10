@@ -477,8 +477,8 @@ const processingRef = useRef(false)
       </header>
 
       <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8">
-        {/* Initial loading skeleton placeholders matching default count - only show when user is logged in and loading */}
-        {user && isLoading && defaultImages.map((_, index) => (
+        {/* Initial loading skeleton placeholders - only show when there are already images to maintain layout */}
+        {user && isLoading && images.length > 0 && defaultImages.map((_, index) => (
           <div key={`skeleton-${index}`} className="flex flex-col gap-4 group animate-pulse break-inside-avoid">
             <div className="relative overflow-hidden rounded-xl bg-surface-container-low">
               <div
