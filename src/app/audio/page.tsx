@@ -414,6 +414,10 @@ export default function AudioLab() {
         )}
       </header>
 
+      <div className="flex justify-center mt-20 mb-20">
+        <h1 className="text-4xl font-bold text-slate-400">AUDIO CREATION: COMING IN PHASE 2</h1>
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left: Filters */}
         <div className="lg:col-span-3">
