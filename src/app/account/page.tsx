@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import TopNav from '@/components/TopNav'
+import Footer from '@/components/Footer'
 import GoogleLoginButton from '@/components/auth/GoogleLoginButton'
 import Web3ConnectButton from '@/components/auth/Web3ConnectButton'
 
@@ -286,6 +287,7 @@ export default function AccountPage() {
           </div>
         </div>
       </main>
+      <Footer />
     </>
   )
 }
