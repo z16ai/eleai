@@ -331,15 +331,15 @@ export default function ImageStudio() {
   const currentModel = models.find(m => m.id === selectedModel)
 
   return (
-    <main className="min-h-screen px-12 pt-20 pb-8">
+    <main className="min-h-screen px-12 pt-20 pb-48">
       <header className="mb-12 flex justify-between items-end">
         <div>
-          <p className="font-headline text-sm font-semibold text-primary tracking-tight mb-1 uppercase">
-            Workbench
-          </p>
-          <h1 className="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">
-            Image Studio
-          </h1>
+          <div className="flex items-center gap-3 mb-2">
+            <span className="px-2 py-0.5 bg-tertiary-container/20 text-tertiary text-[10px] font-bold tracking-widest uppercase rounded-full">
+              Creative Suite
+            </span>
+          </div>
+          <h1 className="text-4xl font-headline font-extrabold tracking-tight text-on-surface">Image Studio</h1>
         </div>
         <div className="flex items-center gap-4">
           {generationQueue.length > 0 && (

@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import Footer from '@/components/Footer'
+
 
 interface GeneratedVideo {
   id: string
@@ -354,7 +354,7 @@ export default function VideoStudio() {
   const currentModel = models.find(m => m.id === selectedModel)
 
   return (
-    <main className="ml-20 min-h-screen px-12 pt-20 pb-48">
+    <main className="min-h-screen px-12 pt-20 pb-48">
       <header className="flex justify-between items-end mb-12">
         <div>
           <div className="flex items-center gap-3 mb-2">
@@ -374,14 +374,11 @@ export default function VideoStudio() {
         )}
       </header>
 
-      <div className="columns-1 md:columns-2 lg:columns-3 gap-8 space-y-8">
-        {/* Initial loading */}
-        {isLoading && (
-          <div className="break-inside-avoid animate-pulse">
-            <div className="w-full h-64 bg-surface-container-low rounded-xl"></div>
-          </div>
-        )}
+      <div className="flex justify-center mt-20">
+        <h1 className="text-4xl font-bold text-slate-400">VIDEO CREATION: COMING IN PHASE 2</h1>
+      </div>
 
+      <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-8 space-y-8">
         {!isLoading && videos.map((video) => {
           return (
             <div
@@ -471,12 +468,11 @@ export default function VideoStudio() {
       {/* Generation controls */}
       <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-4xl px-6 flex flex-col items-center gap-3 z-[100]">
         {/* Model, Aspect Ratio, Resolution, Duration - all in one card */}
-        <div className="w-full glass-panel rounded-2xl shadow-2xl p-3 flex flex-wrap items-center gap-3 border border-white/40 ring-1 ring-on-surface/5">
+        <div className="w-full glass-panel rounded-2xl shadow-2xl p-3 flex flex-wrap items-center gap-3 border border-white/40 ring-1 ring-on-surface/5 opacity-50 pointer-events-none">
           {/* Model selection */}
-          <div className="relative flex-1 min-w-[240px]" onMouseLeave={() => setIsModelOpen(false)}>
+          <div className="relative flex-1 min-w-[240px]">
             <button
-              className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-surface-container-high rounded-lg text-sm font-medium hover:bg-surface-container-highest transition-colors"
-              onClick={() => setIsModelOpen(!isModelOpen)}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-surface-container-high rounded-lg text-sm font-medium cursor-not-allowed"
             >
               <div className="flex flex-col items-start">
                 <span className="text-[10px] text-on-surface-variant uppercase tracking-wide">Model</span>
@@ -484,34 +480,14 @@ export default function VideoStudio() {
               </div>
               <span className="material-symbols-outlined">expand_more</span>
             </button>
-            {isModelOpen && (
-              <div className="absolute bottom-full left-0 right-0 bg-surface-container-highest rounded-lg shadow-xl border border-outline-variant/10 overflow-hidden max-h-60 overflow-y-auto">
-                <div className="h-2"></div>
-                {models.map((model) => (
-                  <button
-                    key={model.id}
-                    className={`w-full text-left px-3 py-2 text-sm transition-colors bg-transparent text-on-surface hover:bg-primary-container hover:text-on-primary-container`}
-                    onClick={() => {
-                      setSelectedModel(model.id)
-                      setIsModelOpen(false)
-                    }}
-                  >
-                    <div className="font-semibold">{model.name}</div>
-                    <div className="text-xs text-on-surface-variant">{model.description}</div>
-                  </button>
-                ))}
-                <div className="h-2"></div>
-              </div>
-            )}
           </div>
 
           <div className="h-8 w-px bg-on-surface/10"></div>
 
           {/* Duration dropdown */}
-          <div className="relative min-w-[100px]" onMouseLeave={() => setIsDurationOpen(false)}>
+          <div className="relative min-w-[100px]">
             <button
-              className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-surface-container-high rounded-lg text-sm font-medium hover:bg-surface-container-highest transition-colors"
-              onClick={() => setIsDurationOpen(!isDurationOpen)}
+              className="w-full flex items-center justify-between gap-2 px-3 py-2 bg-surface-container-high rounded-lg text-sm font-medium cursor-not-allowed"
             >
               <div className="flex flex-col items-start">
                 <span className="text-[10px] text-on-surface-variant uppercase tracking-wide">Duration</span>
@@ -519,26 +495,6 @@ export default function VideoStudio() {
               </div>
               <span className="material-symbols-outlined">expand_more</span>
             </button>
-            {isDurationOpen && (
-              <div className="absolute bottom-full left-0 right-0 bg-surface-container-highest rounded-lg shadow-xl border border-outline-variant/10 overflow-hidden max-h-48 overflow-y-auto">
-                <div className="h-2"></div>
-                {durations.map((duration) => (
-                  <button
-                    key={duration}
-                    className={`w-full text-left px-3 py-2 text-sm transition-colors bg-transparent text-on-surface hover:bg-primary-container hover:text-on-primary-container ${
-                      selectedDuration === duration ? 'bg-primary-container/50' : ''
-                    }`}
-                    onClick={() => {
-                      setSelectedDuration(duration)
-                      setIsDurationOpen(false)
-                    }}
-                  >
-                    {duration}s
-                  </button>
-                ))}
-                <div className="h-2"></div>
-              </div>
-            )}
           </div>
 
           <div className="h-8 w-px bg-on-surface/10"></div>
@@ -551,9 +507,9 @@ export default function VideoStudio() {
                 className={`px-2.5 py-1.5 rounded-lg text-xs font-bold transition-all min-w-[40px] ${
                   selectedRatio === ratio
                     ? 'bg-primary-container text-on-primary-container'
-                    : 'hover:bg-surface-container-high text-on-surface-variant font-medium'
+                    : 'bg-surface-container-high text-on-surface-variant cursor-not-allowed'
                 }`}
-                onClick={() => setSelectedRatio(ratio)}
+                disabled
               >
                 {ratio}
               </button>
@@ -570,9 +526,9 @@ export default function VideoStudio() {
                 className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
                   selectedResolution === res
                     ? 'bg-primary-container text-on-primary-container'
-                    : 'hover:bg-surface-container-high text-on-surface-variant'
+                    : 'bg-surface-container-high text-on-surface-variant cursor-not-allowed'
                 }`}
-                onClick={() => setSelectedResolution(res)}
+                disabled
               >
                 {res}
               </button>
@@ -581,9 +537,9 @@ export default function VideoStudio() {
         </div>
 
         {/* Upload + Prompt Generate card */}
-        <div className="w-full glass-panel rounded-2xl p-2 flex items-center gap-3 shadow-2xl border border-white/40 ring-1 ring-on-surface/5">
+        <div className="w-full glass-panel rounded-2xl p-2 flex items-center gap-3 shadow-2xl border border-white/40 ring-1 ring-on-surface/5 opacity-50 pointer-events-none">
           {/* Single + upload button */}
-          <label className="w-10 h-10 rounded-xl flex items-center justify-center bg-surface-container-high text-on-surface-variant hover:bg-surface-container-highest transition-colors cursor-pointer shrink-0">
+          <label className="w-10 h-10 rounded-xl flex items-center justify-center bg-surface-container-high text-on-surface-variant cursor-not-allowed shrink-0">
             <span className="material-symbols-outlined text-2xl">add</span>
             <input
               type="file"
@@ -626,22 +582,15 @@ export default function VideoStudio() {
           )}
 
           <textarea
-            className={`flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/50 text-sm font-medium resize-none leading-relaxed`}
+            className="flex-1 bg-transparent border-none focus:ring-0 text-on-surface placeholder:text-on-surface-variant/50 text-sm font-medium resize-none leading-relaxed opacity-50 cursor-not-allowed"
             style={{
-              minHeight: (!prompt && !isPromptFocused) ? '2.5rem' : '3.5rem',
+              minHeight: '2.5rem',
               height: 'auto',
             }}
             placeholder="Describe your video animation, motion, camera movement... Supported: images (first/last frame), video, audio"
             value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onFocus={() => setIsPromptFocused(true)}
-            onBlur={() => setIsPromptFocused(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault()
-                queueGenerate()
-              }
-            }}
+            disabled
+            readOnly
           />
           {/* Generate or Stop Button */}
           {processingRef.current ? (
@@ -660,13 +609,12 @@ export default function VideoStudio() {
             </button>
           ) : (
             <button
-              className="h-10 px-6 rounded-xl bg-primary text-on-primary font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:bg-primary-dim transition-all group"
-              onClick={queueGenerate}
-              disabled={!prompt.trim()}
+              className="h-10 px-6 rounded-xl bg-slate-200 text-slate-400 font-bold flex items-center gap-2 cursor-not-allowed"
+              disabled
             >
-              {generatingQueue.length > 0 ? `Queue (${generatingQueue.length})` : 'Generate'}
+              Generate
               <span
-                className="material-symbols-outlined text-lg transition-transform group-hover:rotate-12"
+                className="material-symbols-outlined text-lg"
                 style={{ fontVariationSettings: "'FILL' 1" }}
               >
                 bolt
@@ -810,7 +758,7 @@ export default function VideoStudio() {
         </div>
       )}
 
-      <Footer />
+      
     </main>
   )
 }
