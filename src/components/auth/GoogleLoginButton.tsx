@@ -12,10 +12,11 @@ export default function GoogleLoginButton({ onClick, className }: GoogleLoginBut
 
   const handleGoogleLogin = async () => {
     onClick?.()
+    const currentPath = window.location.pathname + window.location.search
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
+        redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`,
       },
     })
     if (error) {
