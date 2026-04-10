@@ -1,18 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createPortal } from 'react-dom'
 import { createClient } from '@/lib/supabase/client'
 import GoogleLoginButton from './GoogleLoginButton'
 import Web3ConnectButton from './Web3ConnectButton'
-import LinkAccountsModal from './LinkAccountsModal'
 import { User } from '@supabase/supabase-js'
 
 export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const supabase = createClient()
@@ -125,16 +122,13 @@ export default function AuthButton() {
           <>
             <div className="fixed inset-0 z-40" onClick={() => setIsDropdownOpen(false)} />
             <div className="absolute right-0 mt-2 w-48 bg-surface-container-low dark:bg-slate-800 rounded-xl shadow-xl border border-outline-variant/20 dark:border-slate-700 py-2 z-50">
-              <button
-                onClick={() => {
-                  setIsLinkModalOpen(true)
-                  setIsDropdownOpen(false)
-                }}
+              <Link
+                href="/account"
                 className="w-full flex items-center gap-3 px-4 py-2 text-left text-sm text-on-surface dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-700"
               >
-                <span className="material-symbols-outlined text-xl">link</span>
-                Linked Accounts
-              </button>
+                <span className="material-symbols-outlined text-xl">manage_accounts</span>
+                Account Settings
+              </Link>
               <button
                 onClick={handleSignOut}
                 className="w-full flex items-center gap-3 px-4 py-2 text-left text-sm text-on-surface dark:text-slate-300 hover:bg-surface-container dark:hover:bg-slate-700"
@@ -145,11 +139,6 @@ export default function AuthButton() {
             </div>
           </>
         )}
-
-        <LinkAccountsModal
-          isOpen={isLinkModalOpen}
-          onClose={() => setIsLinkModalOpen(false)}
-        />
       </div>
     )
   }
