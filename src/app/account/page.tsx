@@ -224,7 +224,7 @@ export default function AccountPage() {
                 <button
                   onClick={() => {
                     navigator.clipboard.writeText(user.id)
-                    setMessage({ type: 'success', text: 'User ID copied to clipboard' })
+                    setMessage({ type: 'success', text: 'Copied!' })
                     setTimeout(() => setMessage(null), 2000)
                   }}
                   className="w-full flex items-center justify-between px-3 py-2 bg-surface-container rounded-lg border border-outline-variant hover:border-primary/50 transition-colors cursor-pointer"
