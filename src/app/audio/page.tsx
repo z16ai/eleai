@@ -762,27 +762,50 @@ export default function AudioLab() {
                       </div>
                     </div>
                     <div className="flex items-center gap-1">
-                      <button
-                        className="p-2 text-on-surface-variant hover:text-primary transition-colors"
-                        onClick={() => regenerate(audio)}
-                        title="Regenerate with this text and voice"
-                      >
-                        <span className="material-symbols-outlined">refresh</span>
-                      </button>
-                      <a
-                          href={audio.audioUrl}
-                          download
-                          className="p-2 text-on-surface-variant hover:text-primary transition-colors"
-                        >
-                          <span className="material-symbols-outlined">download</span>
-                        </a>
-                        <button
-                          className="p-2 text-on-surface-variant hover:text-error transition-colors"
-                          onClick={() => setGeneratedAudios(prev => prev.filter(a => a.id !== audio.id))}
-                          title="Delete"
-                        >
-                          <span className="material-symbols-outlined">delete</span>
-                        </button>
+                      {/* Generate buttons: succeeded (regenerate, download, delete), failed (regenerate, delete) */}
+                      {audio.status === 'succeeded' && (
+                        <>
+                          <button
+                            className="p-2 text-on-surface-variant hover:text-primary transition-colors"
+                            onClick={() => regenerate(audio)}
+                            title="Regenerate with this text and voice"
+                          >
+                            <span className="material-symbols-outlined">refresh</span>
+                          </button>
+                          <a
+                            href={audio.audioUrl}
+                            download
+                            className="p-2 text-on-surface-variant hover:text-primary transition-colors"
+                          >
+                            <span className="material-symbols-outlined">download</span>
+                          </a>
+                          <button
+                            className="p-2 text-on-surface-variant hover:text-error transition-colors"
+                            onClick={() => setGeneratedAudios(prev => prev.filter(a => a.id !== audio.id))}
+                            title="Delete"
+                          >
+                            <span className="material-symbols-outlined">delete</span>
+                          </button>
+                        </>
+                      )}
+                      {audio.status === 'failed' && (
+                        <>
+                          <button
+                            className="p-2 text-on-surface-variant hover:text-primary transition-colors"
+                            onClick={() => regenerate(audio)}
+                            title="Regenerate with this text and voice"
+                          >
+                            <span className="material-symbols-outlined">refresh</span>
+                          </button>
+                          <button
+                            className="p-2 text-on-surface-variant hover:text-error transition-colors"
+                            onClick={() => setGeneratedAudios(prev => prev.filter(a => a.id !== audio.id))}
+                            title="Delete"
+                          >
+                            <span className="material-symbols-outlined">delete</span>
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 ))}
