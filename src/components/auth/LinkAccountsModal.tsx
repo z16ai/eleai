@@ -128,8 +128,8 @@ export default function LinkAccountsModal({ isOpen, onClose }: LinkAccountsModal
 
   if (!isOpen) return null
 
-  // Check if email already exists
-  const hasEmail = identities.some(i => i.provider === 'email')
+  // Check if email already exists (any identity has email = already have it)
+  const hasEmail = identities.some(i => i.provider === 'email' || !!i.email)
   // Check if Google already linked
   const hasGoogle = identities.some(i => i.provider === 'google')
   // Check if Web3 already linked
