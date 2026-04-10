@@ -88,11 +88,11 @@ export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectBut
           params: [{ eth_accounts: {} }]
         })
       } else if (wallet.chain === 'solana' && window.solana) {
-        await window.solana.connect({ onlyIfTrusted: false })
+        await window.solana.connect()
       }
       
       const { data, error } = await supabase.auth.signInWithWeb3({
-        chain: wallet.chain,
+        chain: wallet.chain as 'ethereum',
         statement: 'I accept the Terms of Service at https://eleai.studio/tos'
       })
       console.log('Web3 login result:', { data, error })

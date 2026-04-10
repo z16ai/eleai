@@ -4,9 +4,10 @@ import { createClient } from '@/lib/supabase/client'
 
 interface GoogleLoginButtonProps {
   onClick?: () => void
+  className?: string
 }
 
-export default function GoogleLoginButton({ onClick }: GoogleLoginButtonProps) {
+export default function GoogleLoginButton({ onClick, className }: GoogleLoginButtonProps) {
   const supabase = createClient()
 
   const handleGoogleLogin = async () => {
@@ -28,7 +29,7 @@ export default function GoogleLoginButton({ onClick }: GoogleLoginButtonProps) {
   return (
     <button
       onClick={handleGoogleLogin}
-      className="w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+      className={`w-full flex items-center justify-center gap-3 px-4 py-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors ${className || ''}`}
     >
       <svg className="w-5 h-5" viewBox="0 0 24 24">
         <path

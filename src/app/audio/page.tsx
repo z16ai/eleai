@@ -761,7 +761,7 @@ export default function AudioLab() {
                         )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-1">
+                    <div className="flex items-center gap-1 opacity-50 pointer-events-none">
                       {/* Generate buttons: succeeded (regenerate, download, delete), failed (regenerate, delete) */}
                       {audio.status === 'succeeded' && (
                         <>
