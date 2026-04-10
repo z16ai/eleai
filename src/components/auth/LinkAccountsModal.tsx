@@ -150,6 +150,8 @@ export default function LinkAccountsModal({ isOpen, onClose }: LinkAccountsModal
         </h2>
         <p className="text-on-surface-variant mb-6 text-sm">
           Link multiple login methods to the same account. You can sign in with any of them.
+          <br /><br />
+          <strong className="text-amber-600 dark:text-amber-400">Note:</strong> To merge two existing accounts, sign in to one and link the other here.
         </p>
 
         {/* Current Linked Identities */}
