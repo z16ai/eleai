@@ -18,6 +18,7 @@ interface Identity {
 export default function AccountPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
+  const [pageLoading, setPageLoading] = useState(true)
   const [identities, setIdentities] = useState<Identity[]>([])
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null)
   const [user, setUser] = useState<any>(null)
@@ -28,20 +29,22 @@ export default function AccountPage() {
   }, [])
 
   const loadUserAndIdentities = async () => {
+    setPageLoading(true)
     const { data: { user } } = await supabase.auth.getUser()
     setUser(user)
-    if (!user) return
-
-    const { data } = await supabase.auth.getUserIdentities()
-    if (data?.identities) {
-      const mapped: Identity[] = data.identities.map(id => ({
-        id: id.id,
-        provider: id.provider,
-        email: id.identity_data?.email,
-        created_at: id.created_at,
-      }))
-      setIdentities(mapped)
+    if (user) {
+      const { data } = await supabase.auth.getUserIdentities()
+      if (data?.identities) {
+        const mapped: Identity[] = data.identities.map(id => ({
+          id: id.id,
+          provider: id.provider,
+          email: id.identity_data?.email,
+          created_at: id.created_at,
+        }))
+        setIdentities(mapped)
+      }
     }
+    setPageLoading(false)
   }
 
   const handleAddEmail = async (e: React.FormEvent) => {
@@ -121,29 +124,58 @@ export default function AccountPage() {
   const hasGoogle = identities.some(i => i.provider === 'google')
   const hasWeb3 = identities.some(i => i.provider === 'web3')
 
+  if (pageLoading) {
+    return (
+      <>
+        <TopNav />
+        <main className="min-h-screen px-12 pt-20 pb-12">
+          <header className="mb-12">
+            <div>
+              <p className="font-headline text-sm font-semibold text-primary tracking-tight mb-1 uppercase">
+                Account
+              </p>
+              <h1 className="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">
+                Account Management
+              </h1>
+            </div>
+          </header>
+          <div className="max-w-2xl mx-auto p-8 bg-surface-container-low rounded-xl text-center animate-pulse">
+            <div className="w-32 h-6 bg-surface-container-high rounded mx-auto mb-4"></div>
+            <div className="w-48 h-4 bg-surface-container-high rounded mx-auto"></div>
+          </div>
+        </main>
+        <Footer />
+      </>
+    )
+  }
+
   if (!user) {
     return (
-      <main className="min-h-screen px-12 pt-20 pb-12">
-        <header className="mb-12">
-          <div>
-            <p className="font-headline text-sm font-semibold text-primary tracking-tight mb-1 uppercase">
-              Account
-            </p>
-            <h1 className="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">
-              Account Management
-            </h1>
+      <>
+        <TopNav />
+        <main className="min-h-screen px-12 pt-20 pb-12">
+          <header className="mb-12">
+            <div>
+              <p className="font-headline text-sm font-semibold text-primary tracking-tight mb-1 uppercase">
+                Account
+              </p>
+              <h1 className="font-headline text-4xl font-extrabold text-on-surface tracking-tighter">
+                Account Management
+              </h1>
+            </div>
+          </header>
+          <div className="max-w-2xl mx-auto p-8 bg-surface-container-low rounded-xl text-center">
+            <p className="text-on-surface-variant mb-6">You need to be signed in to view this page.</p>
+            <Link
+              href="/"
+              className="px-6 py-2 bg-primary text-on-primary rounded-lg font-semibold hover:bg-primary-dim transition-colors"
+            >
+              Go Home
+            </Link>
           </div>
-        </header>
-        <div className="max-w-2xl mx-auto p-8 bg-surface-container-low rounded-xl text-center">
-          <p className="text-on-surface-variant mb-6">You need to be signed in to view this page.</p>
-          <Link
-            href="/"
-            className="px-6 py-2 bg-primary text-on-primary rounded-lg font-semibold hover:bg-primary-dim transition-colors"
-          >
-            Go Home
-          </Link>
-        </div>
-      </main>
+        </main>
+        <Footer />
+      </>
     )
   }
 

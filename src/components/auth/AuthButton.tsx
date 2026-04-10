@@ -1,16 +1,19 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import GoogleLoginButton from './GoogleLoginButton'
 import Web3ConnectButton from './Web3ConnectButton'
+import LinkAccountsModal from './LinkAccountsModal'
 import { User } from '@supabase/supabase-js'
 
 export default function AuthButton() {
   const [user, setUser] = useState<User | null>(null)
   const [isDropdownOpen, setIsDropdownOpen] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isLinkModalOpen, setIsLinkModalOpen] = useState(false)
   const [loading, setLoading] = useState(true)
   const [mounted, setMounted] = useState(false)
   const supabase = createClient()
