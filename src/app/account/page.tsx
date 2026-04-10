@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import Link from 'next/link'
 import TopNav from '@/components/TopNav'
@@ -28,10 +28,14 @@ export default function AccountPage() {
   const [showAddEmail, setShowAddEmail] = useState(false)
   const [showLinkWeb3, setShowLinkWeb3] = useState(false)
   const [user, setUser] = useState<any>(null)
+  const loadingRef = useRef(false)
   const supabase = createClient()
 
   useEffect(() => {
-    loadUserAndIdentities()
+    if (!loadingRef.current) {
+      loadingRef.current = true
+      loadUserAndIdentities()
+    }
   }, [])
 
   const loadUserAndIdentities = async () => {
