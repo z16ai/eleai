@@ -1,8 +1,68 @@
+'use client'
+
 import Footer from '@/components/Footer'
 import TopNav from '@/components/TopNav'
 import Link from 'next/link'
+import { useState, useEffect } from 'react'
+
+interface PlazaImage {
+  id: string
+  prompt: string
+  aspectRatio: string
+  quality: string
+  modelName: string
+  src: string
+  alt: string
+  createdAt: number
+  userEmail: string
+}
 
 export default function Home() {
+  const [randomImages, setRandomImages] = useState<PlazaImage[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    async function fetchPlazaImages() {
+      try {
+        const res = await fetch('/api/images/plaza')
+        const data = await res.json()
+        if (data.success && data.images && data.images.length > 0) {
+          // Filter for wide aspect ratios (16:9 or 21:9) for cards
+          const wideImages = data.images.filter((img: PlazaImage) =>
+            img.aspectRatio === '16:9' || img.aspectRatio === '21:9'
+          )
+          // If enough wide images, use them. Otherwise mix with others
+          let availableImages = wideImages.length >= 3 ? wideImages : data.images
+          // Shuffle
+          const shuffled = [...availableImages].sort(() => Math.random() - 0.5)
+          // Take 4 for banner (any ratio) + 3 wide for cards
+          const bannerCandidates = [...data.images].sort(() => Math.random() - 0.5)
+          const selectedBanner = bannerCandidates.slice(0, 4)
+          const selectedCards = shuffled.slice(0, 3)
+          setRandomImages([...selectedBanner, ...selectedCards])
+        }
+      } catch (error) {
+        console.error('Failed to fetch plaza images:', error)
+        // Fallback to default images if fetch fails
+        setRandomImages([
+          { src: '/images/87c45120.jpg', alt: 'Abstract AI Art', aspectRatio: '16:9' } as PlazaImage,
+          { src: '/images/c905cb71.jpg', alt: 'AI Landscape', aspectRatio: '16:9' } as PlazaImage,
+          { src: '/images/4db8c3f0.jpg', alt: 'Portrait AI', aspectRatio: '3:4' } as PlazaImage,
+          { src: '/images/d6f4d622.jpg', alt: 'Abstract Flow', aspectRatio: '4:5' } as PlazaImage,
+          { src: '/images/39d39603.jpg', alt: 'Minimalist aesthetic', aspectRatio: '1:1' } as PlazaImage,
+          { src: '/images/0bdb3fd6.jpg', alt: 'Motion blur', aspectRatio: '16:9' } as PlazaImage,
+          { src: '/images/6b46212a.jpg', alt: 'Audio wave', aspectRatio: '16:9' } as PlazaImage,
+        ])
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchPlazaImages()
+  }, [])
+
+  const bannerImages = randomImages.slice(0, 4)
+  const cardImages = randomImages.slice(4, 7)
+
   return (
     <>
       <TopNav />
@@ -14,10 +74,10 @@ export default function Home() {
                 Evolution of Creativity
               </span>
               <h1 className="text-5xl lg:text-7xl font-manrope font-extrabold tracking-tighter text-on-background mb-8 leading-[1.1]">
-                Let every moment of <span className="text-gradient">inspiration</span> have a visual impact.
+                AI Creator Economy <br /><span className="text-gradient">Infrastructure Layer</span>
               </h1>
-              <p className="text-lg text-on-surface-variant mb-10 max-w-lg font-body leading-relaxed">
-                The definitive workstation for generative artists. High-fidelity image, video, and audio creation powered by the next generation of neural engines.
+              <p className="text-lg text-on-surface-variant mb-10 max-w-2xl font-body leading-relaxed">
+                eleAI is building the infrastructure for the AI Creator Economy — where creation, ownership, distribution, and monetization of AI-generated content are unified into one protocol.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/image">
@@ -35,34 +95,50 @@ export default function Home() {
               <div className="relative grid grid-cols-2 gap-4">
                 <div className="space-y-4 pt-12">
                   <div className="rounded-xl overflow-hidden shadow-2xl">
-                    <img
-                      alt="Abstract AI Art"
-                      className="w-full h-48 object-cover"
-                      src="/images/87c45120.jpg"
-                    />
+                    {loading ? (
+                      <div className="w-full h-48 animate-pulse bg-surface-container-high"></div>
+                    ) : (
+                      <img
+                        alt={bannerImages[0]?.alt || 'Abstract AI Art'}
+                        className="w-full h-48 object-cover"
+                        src={bannerImages[0]?.src}
+                      />
+                    )}
                   </div>
                   <div className="rounded-xl overflow-hidden shadow-2xl">
-                    <img
-                      alt="AI Landscape"
-                      className="w-full h-64 object-cover"
-                      src="/images/c905cb71.jpg"
-                    />
+                    {loading ? (
+                      <div className="w-full h-64 animate-pulse bg-surface-container-high"></div>
+                    ) : (
+                      <img
+                        alt={bannerImages[1]?.alt || 'AI Landscape'}
+                        className="w-full h-64 object-cover"
+                        src={bannerImages[1]?.src}
+                      />
+                    )}
                   </div>
                 </div>
                 <div className="space-y-4">
                   <div className="rounded-xl overflow-hidden shadow-2xl">
-                    <img
-                      alt="Portrait AI"
-                      className="w-full h-72 object-cover"
-                      src="/images/4db8c3f0.jpg"
-                    />
+                    {loading ? (
+                      <div className="w-full h-72 animate-pulse bg-surface-container-high"></div>
+                    ) : (
+                      <img
+                        alt={bannerImages[2]?.alt || 'Portrait AI'}
+                        className="w-full h-72 object-cover"
+                        src={bannerImages[2]?.src}
+                      />
+                    )}
                   </div>
                   <div className="rounded-xl overflow-hidden shadow-2xl">
-                    <img
-                      alt="Abstract Flow"
-                      className="w-full h-40 object-cover"
-                      src="/images/d6f4d622.jpg"
-                    />
+                    {loading ? (
+                      <div className="w-full h-40 animate-pulse bg-surface-container-high"></div>
+                    ) : (
+                      <img
+                        alt={bannerImages[3]?.alt || 'Abstract Flow'}
+                        className="w-full h-40 object-cover"
+                        src={bannerImages[3]?.src}
+                      />
+                    )}
                   </div>
                 </div>
               </div>
@@ -91,11 +167,15 @@ export default function Home() {
                     Ultra-HD diffusion models with precise prompt control and real-time stylistic layering.
                   </p>
                   <div className="h-32 bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center">
-                    <img
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      alt="Minimalist aesthetic"
-                      src="/images/39d39603.jpg"
-                    />
+                    {loading ? (
+                      <div className="w-full h-full animate-pulse bg-surface-container-high"></div>
+                    ) : (
+                      <img
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        alt={cardImages[0]?.alt || 'Minimalist aesthetic'}
+                        src={cardImages[0]?.src || '/images/39d39603.jpg'}
+                      />
+                    )}
                   </div>
                 </div>
               </Link>
@@ -110,11 +190,15 @@ export default function Home() {
                     Temporal consistency at its peak. Generate cinematic clips from text or static imagery in seconds.
                   </p>
                   <div className="h-32 bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center">
-                    <img
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      alt="Motion blur"
-                      src="/images/0bdb3fd6.jpg"
-                    />
+                    {loading ? (
+                      <div className="w-full h-full animate-pulse bg-surface-container-high"></div>
+                    ) : (
+                      <img
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        alt={cardImages[1]?.alt || 'Motion blur'}
+                        src={cardImages[1]?.src || '/images/0bdb3fd6.jpg'}
+                      />
+                    )}
                   </div>
                 </div>
               </Link>
@@ -129,11 +213,15 @@ export default function Home() {
                     Master soundscapes with AI-driven orchestration, voice cloning, and environmental foley generation.
                   </p>
                   <div className="h-32 bg-surface-container-low rounded-lg overflow-hidden flex items-center justify-center">
-                    <img
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      alt="Audio wave"
-                      src="/images/6b46212a.jpg"
-                    />
+                    {loading ? (
+                      <div className="w-full h-full animate-pulse bg-surface-container-high"></div>
+                    ) : (
+                      <img
+                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                        alt={cardImages[2]?.alt || 'Audio wave'}
+                        src={cardImages[2]?.src || '/images/6b46212a.jpg'}
+                      />
+                    )}
                   </div>
                 </div>
               </Link>

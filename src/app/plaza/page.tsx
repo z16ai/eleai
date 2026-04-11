@@ -144,7 +144,7 @@ export default function Plaza() {
       </div>
 
       {/* Grid of works - 2px spacing horizontally and vertically, container has rounded corners, items have no rounded corners */}
-      <div className="columns-1 md:columns-2 lg:columns-3 xl:columns-4 gap-[2px] space-y-[2px] overflow-hidden rounded-xl border border-outline-variant/10 bg-outline-variant/5">
+      <div className="columns-1 sm:columns-2 md:columns-3 lg:columns-4 xl:columns-5 2xl:columns-6 gap-[2px] space-y-[2px] overflow-hidden rounded-xl border border-outline-variant/10 bg-outline-variant/5">
         {isLoading && (
           <div className="break-inside-avoid animate-pulse">
             <div className="w-full h-64 bg-surface-container-low"></div>

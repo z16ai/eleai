@@ -41,7 +41,20 @@
       "Bash(ls -la /Users/axin/localproject/eleai-studio/*.png *.ico *.svg)",
       "WebFetch(domain:supabase.com)",
       "Bash(Co-Authored-By: Claude Opus 4.6)",
-      "Bash(psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"UPDATE public.user_profiles SET web3_account = NULL, updated_at = NOW\\(\\) WHERE email = 'mydoto@gmail.com'\")"
+      "Bash(psql -h 127.0.0.1 -p 54322 -U postgres -d postgres -c \"UPDATE public.user_profiles SET web3_account = NULL, updated_at = NOW\\(\\) WHERE email = 'mydoto@gmail.com'\")",
+      "Bash(supabase init:*)",
+      "Bash(supabase start:*)",
+      "Bash(docker-compose ps:*)",
+      "Bash(docker compose:*)",
+      "Bash(supabase status:*)",
+      "Bash(ls:*)",
+      "Bash(kill -0 80453)",
+      "Bash(docker pull:*)",
+      "Bash(docker system df:*)",
+      "Bash(supabase stop:*)",
+      "Bash(supabase db:*)",
+      "Bash(psql \"postgresql://postgres:postgres@localhost:54322/postgres\" -c \"\\\\dt public.*\")",
+      "Bash(docker exec:*)"
     ]
   }
 }

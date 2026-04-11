@@ -47,8 +47,8 @@ export default function LinkAccountsModal({ isOpen, onClose }: LinkAccountsModal
       const mapped: Identity[] = data.identities.map(id => ({
         id: id.id,
         provider: id.provider,
-        email: id.identity_data?.email,
-        created_at: id.created_at,
+        email: id.identity_data?.email || '',
+        created_at: id.created_at || '',
       }))
       setIdentities(mapped)
     }
@@ -102,11 +102,12 @@ export default function LinkAccountsModal({ isOpen, onClose }: LinkAccountsModal
       return
     }
 
+    const identityToUnlink = identities.find(i => i.provider === provider)
+    if (!identityToUnlink) return
+
     if (!confirm(`Are you sure you want to unlink ${provider}?`)) return
 
-    const { error } = await supabase.auth.unlinkIdentity({
-      provider
-    })
+    const { error } = await supabase.auth.unlinkIdentity(identityToUnlink as any)
 
     if (error) {
       setMessage({ type: 'error', text: error.message })

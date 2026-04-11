@@ -93,6 +93,12 @@ export async function POST(request: NextRequest) {
     const { prompt, modelId, aspectRatio, quality, referenceImage } = await request.json()
 
     // Get user from Supabase - get token from Authorization header
+    const authHeader = request.headers.get('Authorization')
+    let token: string | null = null
+    if (authHeader?.startsWith('Bearer ')) {
+      token = authHeader.substring(7)
+    }
+
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -101,17 +107,15 @@ export async function POST(request: NextRequest) {
           autoRefreshToken: false,
           persistSession: false,
         },
+        global: token ? {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        } : {},
       }
     )
 
-    // Get access token from Authorization header
-    const authHeader = request.headers.get('Authorization')
-    let token: string | null = null
-    if (authHeader?.startsWith('Bearer ')) {
-      token = authHeader.substring(7)
-    }
-
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token || '')
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },

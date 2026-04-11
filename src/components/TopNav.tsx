@@ -17,6 +17,11 @@ const navItems = [
   { href: '/plaza', label: 'Plaza', icon: 'storefront' },
 ]
 
+const tokenItems = [
+  { href: '/roadmap', label: 'Roadmap', icon: 'map' },
+  { href: '/tokenomics', label: 'Tokenomics', icon: 'chart_data' },
+]
+
 export default function TopNav() {
   const pathname = usePathname() || ''
   const { user } = useAuth()
@@ -35,6 +40,8 @@ export default function TopNav() {
     }
 
     async function fetchPoints() {
+      if (!user) return
+      
       const { data, error } = await supabase
         .from('user_points')
         .select('points, last_reset_date')
@@ -92,8 +99,6 @@ export default function TopNav() {
             </span>
           </Link>
 
-          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
-
           <div className="flex items-center gap-1">
             {workspaceItems.map((item) => (
               <Link
@@ -133,16 +138,30 @@ export default function TopNav() {
               </Link>
             ))}
           </div>
+
+          <div className="h-6 w-px bg-slate-200 dark:bg-slate-700"></div>
+
+          <div className="flex items-center gap-1">
+            {tokenItems.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-all ${
+                  isActive(item.href)
+                    ? 'bg-primary/10 text-primary'
+                    : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                }`}
+              >
+                <span className="material-symbols-outlined text-lg" style={{ fontVariationSettings: isActive(item.href) ? "'FILL' 1" : "'FILL' 0" }}>
+                  {item.icon}
+                </span>
+                {item.label}
+              </Link>
+            ))}
+          </div>
         </div>
 
         <div className="flex items-center gap-4">
-          <Link href="/roadmap" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
-            Roadmap
-          </Link>
-          <Link href="/tokenomics" className="text-sm font-medium text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100 transition-colors">
-            Tokenomics
-          </Link>
-          <div className="h-5 w-px bg-slate-300 dark:bg-slate-600"></div>
           {/* Points display - before AuthButton */}
           {user && points !== null && (
             <>
@@ -159,7 +178,6 @@ export default function TopNav() {
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 w-2 h-2 bg-surface-container-highest rotate-45"></div>
                 </div>
               </div>
-              <div className="h-5 w-px bg-slate-300 dark:bg-slate-600"></div>
             </>
           )}
           <AuthButton />

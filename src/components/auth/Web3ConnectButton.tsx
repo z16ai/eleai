@@ -93,11 +93,9 @@ export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectBut
 
       if (isLoggedIn) {
         // Link to current logged in account
-        const currentPath = window.location.pathname + window.location.search
-        const { data, error } = await supabase.auth.linkIdentity({
+        const { data, error } = await (supabase.auth as any).linkIdentity({
           provider: 'web3',
           options: {
-            redirectTo: `${window.location.origin}/auth/callback?next=${encodeURIComponent(currentPath)}`,
             chain: wallet.chain,
             statement: 'I accept the Terms of Service at https://eleai.studio/tos'
           }

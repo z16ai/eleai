@@ -5,62 +5,78 @@ import TopNav from '@/components/TopNav'
 
 const phases = [
   {
-    phase: 'Phase 1',
+    phase: 'Phase 1 — Foundation',
+    status: 'completed',
+    period: 'Completed',
+    items: [
+      'AI Image Generation',
+      'AI Editing',
+      'Creator Feed',
+      'Social Gallery',
+      'Email / Google / Wallet Auth',
+      'Token Launch',
+    ],
+  },
+  {
+    phase: 'Phase 2 — Monetization Layer',
     status: 'current',
+    period: 'April',
     items: [
-      'Launch Image Creation / Image Editing features',
-      'Launch Plaza feature',
-      'Launch Email Registration',
-      'Integrate Google User Login',
-      'eleAI Token Launch',
+      'Subscription Pricing',
+      'Creator Marketplace',
+      'Paid Publishing',
+      'Referral System',
+      'Coupon Engine',
     ],
   },
   {
-    phase: 'Phase 2',
+    phase: 'Phase 3 — Economy Layer',
     status: 'upcoming',
+    period: 'May',
     items: [
-      'Launch Membership Subscription System',
-      'Integrate Metamask, OKX Wallet, Phantom Wallet connections',
-      'Launch Plaza Trading feature',
-      'Launch Paid Content for Members',
-      'Launch Invitation Mechanism',
-      'Launch Discount Coupon feature',
+      'Revenue Dashboard',
+      'Token Reward Program',
+      'Staking',
+      'Creator Tier System',
+      'Reputation Score',
     ],
   },
   {
-    phase: 'Phase 3',
+    phase: 'Phase 4 — Multimodal Expansion',
     status: 'upcoming',
+    period: 'June',
     items: [
-      'Open Operations Data Dashboard',
-      'Launch Token Holder Reward Program',
+      'Video Generation',
+      'Audio Generation',
+      'Scene Templates',
+      'Vertical Use Cases',
     ],
   },
   {
-    phase: 'Phase 4',
+    phase: 'Phase 5 — Protocol Expansion',
     status: 'upcoming',
+    period: 'Q3 & Q4',
     items: [
-      'Launch Video Creation feature',
-      'Launch Audio Creation feature',
-      'Refine AI Image Creation application scenarios',
-      'Refine AI Video Creation application scenarios',
-      'Refine AI Audio Creation application scenarios',
+      'Skill SDK',
+      'CLI Integrations',
+      'API Platform',
+      'Enterprise AI Workflow',
     ],
   },
   {
-    phase: 'Phase 5',
+    phase: 'Phase 6 — Ecosystem Layer',
     status: 'upcoming',
+    period: '2027',
     items: [
-      'Launch eleAI Skill, supporting Openclaw, Claude Code and other CLI tool integrations',
-      'Deploy eleAI LLM Server',
-      'Open eleAI API Service',
+      'Third-party Developers',
+      'Plugin Ecosystem',
+      'Revenue Sharing',
+      'AI Agent Marketplace',
     ],
   },
 ]
 
-const longTermGoals = [
-  'Continuously iterate following AI development',
-  'Provide the best AI tools for audio-visual creators',
-]
+const mission = 'To become the operating system for the global AI creator economy.'
 
 export default function RoadmapPage() {
   return (
@@ -94,8 +110,10 @@ export default function RoadmapPage() {
                   >
                     <div className={`flex-1 ${index % 2 === 0 ? 'lg:text-right' : 'lg:text-left'}`}>
                       <div
-                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold mb-4 ${
-                          phase.status === 'current'
+                        className={`inline-flex items-center gap-3 px-4 py-2 rounded-full text-sm font-bold mb-4 ${
+                          phase.status === 'completed'
+                            ? 'bg-success-container text-on-success-container'
+                            : phase.status === 'current'
                             ? 'bg-primary-container text-on-primary-container'
                             : 'bg-surface-container text-on-surface-variant'
                         }`}
@@ -103,12 +121,15 @@ export default function RoadmapPage() {
                         {phase.status === 'current' && (
                           <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
                         )}
-                        {phase.phase}
+                        <span>{phase.phase}</span>
+                        <span className="text-xs font-normal opacity-60 ml-1">{phase.period}</span>
                       </div>
                       <div
                         className={`bg-surface-container-low rounded-2xl p-6 lg:p-8 ${
                           phase.status === 'current'
                             ? 'ring-2 ring-primary/30 shadow-lg shadow-primary/10'
+                            : phase.status === 'completed'
+                            ? 'opacity-70'
                             : ''
                         }`}
                       >
@@ -118,8 +139,12 @@ export default function RoadmapPage() {
                               key={i}
                               className="flex items-start gap-3 text-on-surface"
                             >
-                              <span className="material-symbols-outlined text-primary text-xl flex-shrink-0 mt-0.5">
-                                {phase.status === 'current' ? 'radio_button_checked' : 'radio_button_unchecked'}
+                              <span className={`material-symbols-outlined text-xl flex-shrink-0 mt-0.5 ${
+                                phase.status === 'completed' ? 'text-success' : 
+                                phase.status === 'current' ? 'text-primary' : 'text-on-surface-variant'
+                              }`}>
+                                {phase.status === 'completed' ? 'check_circle' : 
+                                 phase.status === 'current' ? 'radio_button_checked' : 'radio_button_unchecked'}
                               </span>
                               <span className="text-sm lg:text-base">{item}</span>
                             </li>
@@ -131,13 +156,16 @@ export default function RoadmapPage() {
                     <div className="absolute left-8 lg:left-1/2 transform lg:-translate-x-1/2 flex items-center justify-center">
                       <div
                         className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                          phase.status === 'current'
+                          phase.status === 'completed'
+                            ? 'bg-success shadow-lg shadow-success/50'
+                            : phase.status === 'current'
                             ? 'bg-primary shadow-lg shadow-primary/50'
                             : 'bg-surface-container-lowest border-2 border-surface-container'
                         }`}
                       >
                         <span className="material-symbols-outlined text-sm">
-                          {phase.status === 'current' ? 'bolt' : 'lock'}
+                          {phase.status === 'completed' ? 'check' : 
+                           phase.status === 'current' ? 'bolt' : 'lock'}
                         </span>
                       </div>
                     </div>
@@ -154,34 +182,18 @@ export default function RoadmapPage() {
                 <div className="flex items-center gap-3 mb-6">
                   <span className="material-symbols-outlined text-white text-3xl">flag</span>
                   <h2 className="text-2xl lg:text-3xl font-manrope font-extrabold text-white">
-                    Long-Term Vision
+                    Mission
                   </h2>
                 </div>
-                <div className="space-y-4">
-                  {longTermGoals.map((goal, index) => (
-                    <div
-                      key={index}
-                      className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10"
-                    >
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
-                        <span className="material-symbols-outlined text-primary text-xl">
-                          {index === 0 ? 'autorenew' : 'visibility'}
-                        </span>
-                      </div>
-                      <p className="text-white/90 text-sm lg:text-base">{goal}</p>
-                    </div>
-                  ))}
+                <div className="flex items-center gap-4 p-4 rounded-xl bg-white/5 border border-white/10">
+                  <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-primary text-xl">
+                      rocket_launch
+                    </span>
+                  </div>
+                  <p className="text-white/90 text-sm lg:text-base font-medium">{mission}</p>
                 </div>
               </div>
-            </div>
-
-            <div className="mt-16 text-center">
-              <p className="text-on-surface-variant text-sm">
-                This roadmap is subject to change based on user feedback and market conditions.
-              </p>
-              <p className="text-on-surface-variant text-sm mt-2">
-                Stay tuned for updates!
-              </p>
             </div>
           </div>
         </section>
