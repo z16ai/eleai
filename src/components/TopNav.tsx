@@ -22,6 +22,7 @@ export default function TopNav() {
   const { user } = useAuth()
   const [points, setPoints] = useState<number | null>(null)
   const [toastMessage, setToastMessage] = useState<string | null>(null)
+  const supabase = createClient()
 
   const isActive = (href: string) => {
     return pathname.startsWith(href)
@@ -32,8 +33,6 @@ export default function TopNav() {
       setPoints(null)
       return
     }
-
-    const supabase = createClient()
 
     async function fetchPoints() {
       const { data, error } = await supabase
