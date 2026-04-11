@@ -59,7 +59,7 @@ scripts/code-review/
 scripts/
 
 # Docs
-docs/
+!docs/eleAI%20whitepaper.md
 
 # Supabase
 supabase/
