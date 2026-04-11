@@ -106,12 +106,12 @@ export async function POST(request: NextRequest) {
 
     // Get access token from Authorization header
     const authHeader = request.headers.get('Authorization')
+    let token: string | null = null
     if (authHeader?.startsWith('Bearer ')) {
-      const token = authHeader.substring(7)
-      await supabase.auth.getUser(token)
+      token = authHeader.substring(7)
     }
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token || '')
     if (authError || !user) {
       return NextResponse.json(
         { success: false, error: 'Unauthorized' },
