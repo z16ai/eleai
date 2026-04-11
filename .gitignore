@@ -49,6 +49,15 @@ public/audioclone/
 # Claude
 .claude/
 
-# Local DB docs
-LOCAL_DATABASE.md
-remote-dump*.sql
+# Local docs
+AGENTS.md
+SUPABASE_SETUP.md
+docs/code-review-2026-04-10.md
+scripts/code-review/
+
+# Supabase
+supabase/
+
+# External
+cloudflare-worker/
+demoscreen/
