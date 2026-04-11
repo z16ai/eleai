@@ -3,7 +3,7 @@
 import Footer from '@/components/Footer'
 import TopNav from '@/components/TopNav'
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
 interface PlazaImage {
   id: string
@@ -20,8 +20,12 @@ interface PlazaImage {
 export default function Home() {
   const [randomImages, setRandomImages] = useState<PlazaImage[]>([])
   const [loading, setLoading] = useState(true)
+  const initialized = useRef(false)
 
   useEffect(() => {
+    if (initialized.current) return
+    initialized.current = true
+
     async function fetchPlazaImages() {
       try {
         const res = await fetch('/api/images/plaza')
