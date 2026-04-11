@@ -3,21 +3,21 @@
 ## 1. Executive Summary
 
 ### Overview
-ELE is the native economic asset and utility token that powers the entire **eleAI ecosystem** — a fully creator-owned, decentralized AI economy protocol built to become the definitive financial infrastructure layer for AI-native creativity.  
+eleAI is the native economic asset and utility token that powers the entire **eleAI ecosystem** — a fully creator-owned, decentralized AI economy protocol built to become the definitive financial infrastructure layer for AI-native creativity.  
 
 In an era where generative AI has driven the marginal cost of producing high-quality visual, audio, and video content to near zero, creators face a critical paradox: unprecedented creative abundance paired with near-total lack of sustainable monetization, transparent ownership, and equitable value capture.
 
-eleAI directly addresses this market failure by introducing a tokenized, incentive-aligned creator economy. ELE serves as the foundational coordination mechanism for every economic activity inside the platform: AI content generation and consumption, creator monetization through marketplaces, settlement of all transactions, treasury-backed ecosystem incentives, decentralized governance, and protocol-wide value accrual.
+eleAI directly addresses this market failure by introducing a tokenized, incentive-aligned creator economy. eleAI serves as the foundational coordination mechanism for every economic activity inside the platform: AI content generation and consumption, creator monetization through marketplaces, settlement of all transactions, treasury-backed ecosystem incentives, decentralized governance, and protocol-wide value accrual.
 
 To balance explosive early community growth with long-term structural integrity, eleAI employs a deliberate **two-stage token architecture**:
 
-1. **ELE Genesis** — The initial bootstrap asset launched via Pump.fun, engineered for maximum viral distribution, fair price discovery, and rapid community onboarding.
-2. **ELE Protocol Token** — The upgraded, mature governance and utility token that represents the fully operational protocol economy, complete with advanced staking, revenue sharing, and ecosystem governance rights.
+1. **eleAI Genesis** — The initial bootstrap asset launched via Pump.fun, engineered for maximum viral distribution, fair price discovery, and rapid community onboarding.
+2. **eleAI Protocol Token** — The upgraded, mature governance and utility token that represents the fully operational protocol economy, complete with advanced staking, revenue sharing, and ecosystem governance rights.
 
 This dual-token model uniquely combines the strengths of Web3-native fair-launch culture with the institutional-grade sustainability required for a multi-year protocol that powers a global AI creator economy.
 
 ### Core Value Proposition
-By embedding real utility, deflationary mechanics, and governance directly into the token, ELE transforms passive AI users into active ecosystem participants who co-own and co-benefit from the platform’s growth. The result is a self-reinforcing economic flywheel that aligns the incentives of creators, consumers, developers, and investors like never before.
+By embedding real utility, deflationary mechanics, and governance directly into the token, eleAI transforms passive AI users into active ecosystem participants who co-own and co-benefit from the platform’s growth. The result is a self-reinforcing economic flywheel that aligns the incentives of creators, consumers, developers, and investors like never before.
 
 ## 2. Mission & Vision
 
@@ -52,10 +52,10 @@ The global creator economy already exceeds $250 billion annually, and generative
 
 **Dual-Phase Token Model**
 
-**Phase I — ELE Genesis**  
+**Phase I — eleAI Genesis**  
 Designed as a bootstrap mechanism to achieve viral awareness, fair price discovery, immediate liquidity, and broad community ownership.
 
-**Phase II — ELE Protocol Token**  
+**Phase II — eleAI Protocol Token**  
 The upgraded token that unlocks full governance, advanced staking, revenue-linked incentives, and deep ecosystem integrations.
 
 **Architectural Philosophy**  
@@ -67,7 +67,7 @@ eleAI deliberately separates the high-velocity launch environment from the long-
 
 | Metric                  | Value                  |
 |-------------------------|------------------------|
-| Maximum Total Supply    | 1,000,000,000 ELE     |
+| Maximum Total Supply    | 1,000,000,000 eleAI     |
 | Inflation Policy        | Fixed Supply           |
 | Additional Minting      | Permanently Disabled   |
 | Burn Capability         | Enabled                |
@@ -101,7 +101,7 @@ The Pump.fun launch is the official **Genesis Community Distribution Event**, de
 | Parameter              | Design                    |
 |------------------------|---------------------------|
 | Platform               | Pump.fun                  |
-| Launch Supply          | 500,000,000 ELE           |
+| Launch Supply          | 500,000,000 eleAI           |
 | Distribution Mechanism | Bonding Curve             |
 | Liquidity Migration    | Automatic to DEX          |
 | Fair Launch Principles | No whitelist, no pre-sale |
@@ -117,7 +117,7 @@ The Pump.fun launch is the official **Genesis Community Distribution Event**, de
 | 6–12 Months      | 1.10x       |
 | 12+ Months       | 1.15x       |
 
-Default migration ratio: **1 ELE Genesis = 1 ELE Protocol Token** (with loyalty bonus).
+Default migration ratio: **1 eleAI Genesis = 1 eleAI Protocol Token** (with loyalty bonus).
 
 ## 9. Core Utility Framework
 
@@ -155,7 +155,7 @@ Governed via multi-signature wallet with public transparency and quarterly repor
 
 ## 13. Buyback & Burn Mechanics
 
-- **Revenue Buyback**: 20% of net platform revenue used for open-market ELE buybacks.
+- **Revenue Buyback**: 20% of net platform revenue used for open-market eleAI buybacks.
 - **Burn Program**:
   - Marketplace Fees: 5%
   - AI Usage Fees: 5%
@@ -172,7 +172,7 @@ The eleAI development roadmap is structured in clear, progressive phases that bu
 - Creator Feed
 - Social Gallery
 - Email / Google / Wallet Auth
-- Token Launch (ELE Genesis)
+- Token Launch (eleAI Genesis)
 
 ### Phase 2 — Monetization Layer (Target: April 2026)
 - Subscription Pricing
@@ -216,16 +216,16 @@ This roadmap is living and will be influenced by community governance in later s
 - **Stage 3 (Full DAO)**: Complete on-chain governance
 
 **Governance Scope**  
-ELE holders may vote on treasury deployment, fee structures, burn rates, grant allocations, and product priorities.
+eleAI holders may vote on treasury deployment, fee structures, burn rates, grant allocations, and product priorities.
 
 ## 16. Economic Flywheel Model
 
-The ELE economy forms a virtuous self-reinforcing flywheel:
+The eleAI economy forms a virtuous self-reinforcing flywheel:
 
-1. Users acquire ELE to access AI tools  
-2. Users spend ELE on generation → revenue generated  
-3. Creators earn ELE in the marketplace  
-4. Creators stake/hold ELE → increased scarcity  
+1. Users acquire eleAI to access AI tools  
+2. Users spend eleAI on generation → revenue generated  
+3. Creators earn eleAI in the marketplace  
+4. Creators stake/hold eleAI → increased scarcity  
 5. Platform revenue funds buybacks and burns  
 6. Circulating supply decreases → token scarcity rises  
 7. Ecosystem attractiveness grows → new users enter  
@@ -247,19 +247,19 @@ eleAI prioritizes radical transparency, conservative treasury management, progre
 
 ## 18. Closing Statement
 
-ELE is engineered to evolve far beyond a launch token. It is the foundational economic infrastructure of the eleAI ecosystem — combining fair-launch community distribution, structured treasury economics, built-in deflationary mechanics, real platform utility, and true decentralized governance.
+eleAI is engineered to evolve far beyond a launch token. It is the foundational economic infrastructure of the eleAI ecosystem — combining fair-launch community distribution, structured treasury economics, built-in deflationary mechanics, real platform utility, and true decentralized governance.
 
-By placing creators, users, and the protocol in perfect alignment, ELE seeks to become the enduring value layer that powers the global AI creator economy for decades to come.
+By placing creators, users, and the protocol in perfect alignment, eleAI seeks to become the enduring value layer that powers the global AI creator economy for decades to come.
 
 **Join the eleAI movement. Own the future of creativity.**
 
 ## Disclaimer
 
-This whitepaper is for informational purposes only and does not constitute legal, financial, tax, or investment advice. ELE and ELE Genesis are ecosystem utility assets designed exclusively for participation within the eleAI platform.  
+This whitepaper is for informational purposes only and does not constitute legal, financial, tax, or investment advice. eleAI and eleAI Genesis are ecosystem utility assets designed exclusively for participation within the eleAI platform.  
 
 Participation in blockchain networks, token economies, and digital assets involves substantial risks, including but not limited to regulatory uncertainty, extreme market volatility, protocol execution risk, treasury management risk, cybersecurity threats, smart contract vulnerabilities, and liquidity risk.  
 
-Users are strongly encouraged to conduct their own independent due diligence, consult qualified professionals, and only participate with funds they can afford to lose entirely. The eleAI team makes no guarantees regarding the performance, liquidity, or future value of ELE tokens.
+Users are strongly encouraged to conduct their own independent due diligence, consult qualified professionals, and only participate with funds they can afford to lose entirely. The eleAI team makes no guarantees regarding the performance, liquidity, or future value of eleAI tokens.
 
 ---
 
