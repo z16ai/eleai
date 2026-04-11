@@ -45,3 +45,10 @@ audiogen/
 public/audiogen/
 audioclone/
 public/audioclone/
+
+# Claude
+.claude/
+
+# Local DB docs
+LOCAL_DATABASE.md
+remote-dump*.sql
