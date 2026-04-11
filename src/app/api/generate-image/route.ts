@@ -126,14 +126,24 @@ export async function POST(request: NextRequest) {
       .eq('user_id', user.id)
       .single()
 
+    let currentPoints = 0
     if (pointsError || !userPoints) {
-      return NextResponse.json(
-        { success: false, error: 'No points found' },
-        { status: 400 }
-      )
+      // No points record found - create default 88 points
+      const { error: insertError } = await supabase
+        .from('user_points')
+        .insert([{ user_id: user.id, points: 88 }])
+      if (insertError) {
+        return NextResponse.json(
+          { success: false, error: 'Failed to create points record: ' + insertError.message },
+          { status: 500 }
+        )
+      }
+      currentPoints = 88
+    } else {
+      currentPoints = userPoints.points
     }
 
-    if (userPoints.points < 10) {
+    if (currentPoints < 10) {
       return NextResponse.json(
         { success: false, error: 'Insufficient points. Need 10 points to generate. Come back tomorrow for a reset.' },
         { status: 400 }
@@ -143,7 +153,7 @@ export async function POST(request: NextRequest) {
     // Deduct 10 points
     await supabase
       .from('user_points')
-      .update({ points: userPoints.points - 10, updated_at: new Date().toISOString() })
+      .update({ points: currentPoints - 10, updated_at: new Date().toISOString() })
       .eq('user_id', user.id)
 
     // Check if this is a Doubao model
