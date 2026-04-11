@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
+import { createClient } from '@supabase/supabase-js'
 import { uploadToR2, getPublicUrl } from '@/lib/r2/client'
 
 const openRouterClient = new OpenAI({
