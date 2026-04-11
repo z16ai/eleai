@@ -51,31 +51,35 @@ export default function Footer() {
           </div>
           <div>
             <span className="text-xs font-bold uppercase text-slate-900 dark:text-slate-100 mb-4 block">
-              Legal
+              Docs
             </span>
             <ul className="space-y-2">
               <li>
                 <a
                   className="font-inter text-xs text-slate-500 hover:text-slate-900 transition-colors underline-offset-4 hover:underline"
-                  href="#"
+                  href="https://deepwiki.com/z16ai/eleai"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Privacy
+                  Docs
                 </a>
               </li>
               <li>
                 <a
                   className="font-inter text-xs text-slate-500 hover:text-slate-900 transition-colors underline-offset-4 hover:underline"
-                  href="#"
+                  href="https://github.com/z16ai/eleai/blob/main/docs/eleAI%20whitepaper.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Terms
+                  Whitepaper
                 </a>
               </li>
               <li>
                 <a
                   className="font-inter text-xs text-slate-500 hover:text-slate-900 transition-colors underline-offset-4 hover:underline"
-                  href="#"
+                  href="/tokenomics"
                 >
-                  Cookies
+                  Tokenomics
                 </a>
               </li>
             </ul>

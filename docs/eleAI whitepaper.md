@@ -106,19 +106,6 @@ The Pump.fun launch is the official **Genesis Community Distribution Event**, de
 | Liquidity Migration    | Automatic to DEX          |
 | Fair Launch Principles | No whitelist, no pre-sale |
 
-## 8. Genesis Upgrade / Migration Design
-
-**Migration Ratio & Loyalty Bonus**
-
-| Holding Duration | Bonus Ratio |
-|------------------|-------------|
-| < 3 Months       | 1.00x       |
-| 3–6 Months       | 1.05x       |
-| 6–12 Months      | 1.10x       |
-| 12+ Months       | 1.15x       |
-
-Default migration ratio: **1 eleAI Genesis = 1 eleAI Protocol Token** (with loyalty bonus).
-
 ## 9. Core Utility Framework
 
 - **AI Consumption Utility**: Exclusive payment for image, video, audio generation, editing, batch rendering, and premium models.
@@ -131,19 +118,31 @@ Default migration ratio: **1 eleAI Genesis = 1 eleAI Protocol Token** (with loya
 
 | Lock Period | Reward Multiplier |
 |-------------|-------------------|
-| Flexible    | 1.00x             |
-| 30 Days     | 1.10x             |
-| 90 Days     | 1.25x             |
-| 180 Days    | 1.50x             |
+| Flexible    | 1.0x              |
+| 90 Days     | 1.15x             |
+| 180 Days    | 1.25x             |
 
 Staking benefits include fee discounts, governance boosts, yield incentives, and exclusive unlocks.
 
-## 11. Treasury Framework
+## 11. Genesis Loyalty Bonus
+
+**Migration Ratio & Loyalty Bonus**
+
+| Holding Duration | Bonus Ratio |
+|------------------|-------------|
+| < 3 Months       | 1.0x        |
+| 3-6 Months       | 1.1x        |
+| 6-12 Months      | 1.2x        |
+| 12+ Months       | 1.3x        |
+
+Default migration ratio: **1 eleAI Genesis = 1 eleAI Protocol Token** (with loyalty bonus).
+
+## 12. Treasury Framework
 
 The treasury supports long-term runway, ecosystem grants, creator subsidies, liquidity operations, and strategic partnerships.  
 Governed via multi-signature wallet with public transparency and quarterly reporting.
 
-## 12. Vesting & Unlock Schedule
+## 13. Vesting & Unlock Schedule
 
 **Team Allocation**  
 - Cliff: 12 Months  
@@ -153,7 +152,7 @@ Governed via multi-signature wallet with public transparency and quarterly repor
 - Cliff: 6 Months  
 - Vesting: 18 Months Linear
 
-## 13. Buyback & Burn Mechanics
+## 14. Buyback & Burn Mechanics
 
 - **Revenue Buyback**: 20% of net platform revenue used for open-market eleAI buybacks.
 - **Burn Program**:
@@ -162,7 +161,7 @@ Governed via multi-signature wallet with public transparency and quarterly repor
 
 These mechanisms create continuous deflationary pressure tied to platform growth.
 
-## 14. Roadmap
+## 15. Roadmap
 
 The eleAI development roadmap is structured in clear, progressive phases that build foundational capabilities first, then layer on monetization, economic incentives, multimodal AI features, protocol-level tools, and finally a thriving third-party ecosystem.
 
@@ -208,7 +207,7 @@ The eleAI development roadmap is structured in clear, progressive phases that bu
 
 This roadmap is living and will be influenced by community governance in later stages. Progress will be tracked publicly with regular updates.
 
-## 15. Governance Framework
+## 16. Governance Framework
 
 **Governance Roadmap**
 - **Stage 1 (Foundation)**: Core team with full transparency
@@ -218,7 +217,7 @@ This roadmap is living and will be influenced by community governance in later s
 **Governance Scope**  
 eleAI holders may vote on treasury deployment, fee structures, burn rates, grant allocations, and product priorities.
 
-## 16. Economic Flywheel Model
+## 17. Economic Flywheel Model
 
 The eleAI economy forms a virtuous self-reinforcing flywheel:
 
@@ -232,7 +231,7 @@ The eleAI economy forms a virtuous self-reinforcing flywheel:
 
 This compounding loop creates powerful network effects between utility, scarcity, adoption, and value accrual.
 
-## 17. Risk Factors
+## 18. Risk Factors
 
 **Key Risks**
 - Market and token price volatility
@@ -245,7 +244,7 @@ This compounding loop creates powerful network effects between utility, scarcity
 **Risk Mitigation**  
 eleAI prioritizes radical transparency, conservative treasury management, progressive decentralization, continuous security audits, and disciplined long-term execution.
 
-## 18. Closing Statement
+## 19. Closing Statement
 
 eleAI is engineered to evolve far beyond a launch token. It is the foundational economic infrastructure of the eleAI ecosystem — combining fair-launch community distribution, structured treasury economics, built-in deflationary mechanics, real platform utility, and true decentralized governance.
 

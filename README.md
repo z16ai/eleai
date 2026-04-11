@@ -53,10 +53,17 @@ ELE is the native economic asset and utility token that powers the entire eleAI 
 ### Staking
 | Lock Period | Reward Multiplier |
 |-------------|-------------------|
-| Flexible    | 1.00x             |
-| 30 Days     | 1.10x             |
-| 90 Days     | 1.25x             |
-| 180 Days    | 1.50x             |
+| Flexible    | 1.0x              |
+| 90 Days     | 1.15x             |
+| 180 Days    | 1.25x             |
+
+### Genesis Loyalty Bonus
+| Holding Duration | Bonus Ratio |
+|-----------------|-------------|
+| < 3 Months      | 1.0x        |
+| 3-6 Months      | 1.1x        |
+| 6-12 Months     | 1.2x        |
+| 12+ Months      | 1.3x        |
 
 ## Roadmap
 

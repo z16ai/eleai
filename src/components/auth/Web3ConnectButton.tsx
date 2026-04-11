@@ -52,8 +52,22 @@ export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectBut
   const supabase = createClient()
 
   useEffect(() => {
-    const detected = WALLETS.filter(w => w.detect())
-    setAvailableWallets(detected)
+    const detectWallets = () => {
+      const detected = WALLETS.filter(w => {
+        const isDetected = w.detect()
+        console.log(`Wallet ${w.name}:`, isDetected)
+        return isDetected
+      })
+      setAvailableWallets(detected)
+    }
+
+    // Run detection after a short delay to ensure DOM is ready
+    setTimeout(detectWallets, 100)
+    
+    // Also listen for wallet changes
+    if (window.ethereum) {
+      window.ethereum.on('chainChanged', detectWallets)
+    }
   }, [])
 
   useEffect(() => {
@@ -89,6 +103,10 @@ export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectBut
         })
       } else if (wallet.chain === 'solana' && window.solana) {
         await window.solana.connect()
+      } else {
+        alert(`${wallet.name} is not available. Please make sure it's installed.`)
+        setConnectingWallet(null)
+        return
       }
 
       if (isLoggedIn) {
@@ -117,8 +135,11 @@ export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectBut
           alert(error.message)
         }
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error('Signing error:', err)
+      if (err.code !== 4001 && err.message !== 'User rejected the request') {
+        alert(err.message || 'Failed to connect wallet')
+      }
     } finally {
       setConnectingWallet(null)
     }
