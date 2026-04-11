@@ -128,11 +128,13 @@ export async function POST(request: NextRequest) {
 
     let currentPoints = 0
     if (pointsError || !userPoints) {
+      console.log('Creating new points record for user', user.id, 'error:', pointsError)
       // No points record found - create default 88 points
       const { error: insertError } = await supabase
         .from('user_points')
         .insert([{ user_id: user.id, points: 88 }])
       if (insertError) {
+        console.error('Insert points error:', insertError)
         return NextResponse.json(
           { success: false, error: 'Failed to create points record: ' + insertError.message },
           { status: 500 }
