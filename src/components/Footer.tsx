@@ -88,7 +88,9 @@ export default function Footer() {
               <li>
                 <a
                   className="font-inter text-xs text-slate-500 hover:text-slate-900 transition-colors underline-offset-4 hover:underline"
-                  href="#"
+                  href="https://x.com/eleai_tech"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
                   Twitter
                 </a>
@@ -96,17 +98,21 @@ export default function Footer() {
               <li>
                 <a
                   className="font-inter text-xs text-slate-500 hover:text-slate-900 transition-colors underline-offset-4 hover:underline"
-                  href="#"
+                  href="https://t.me/+A2BxjTrCiOJmMjZl"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Discord
+                  Telegram
                 </a>
               </li>
               <li>
                 <a
                   className="font-inter text-xs text-slate-500 hover:text-slate-900 transition-colors underline-offset-4 hover:underline"
-                  href="#"
+                  href="https://github.com/z16ai/eleai"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  LinkedIn
+                  Github
                 </a>
               </li>
             </ul>
