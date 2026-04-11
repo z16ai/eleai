@@ -104,6 +104,25 @@ export async function POST(request: NextRequest) {
       }
     )
 
+    // Get auth token from cookie - sb-<project-ref>-auth-token
+    const projectRef = process.env.NEXT_PUBLIC_SUPABASE_URL?.split('/')[2].split('.')[0]
+    const cookieName = `sb-${projectRef}-auth-token`
+    const authCookie = request.cookies.get(cookieName)?.value
+    if (authCookie) {
+      // Parse the cookie - it's a JSON string
+      try {
+        const parsed = JSON.parse(decodeURIComponent(authCookie))
+        if (parsed.access_token) {
+          await supabase.auth.setSession({
+            access_token: parsed.access_token,
+            refresh_token: parsed.refresh_token || '',
+          })
+        }
+      } catch (e) {
+        console.error('Failed to parse auth cookie', e)
+      }
+    }
+
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json(
