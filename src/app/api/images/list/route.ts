@@ -6,6 +6,7 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const userIdFromHeader = request.headers.get('x-user-id')
+    console.log('List API - userId from header:', userIdFromHeader)
 
     if (!userIdFromHeader) {
       return NextResponse.json({ success: true, images: [], reason: 'no user' })
@@ -16,19 +17,25 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    // Query all images and filter in code - more reliable than RPC
+    // Get all images
     const { data: allImages, error } = await supabase
       .from('image_generations')
       .select('*')
       .order('created_at', { ascending: false })
+
+    console.log('List API - total images fetched:', allImages?.length)
 
     if (error) {
       console.error('Select error:', error)
       return NextResponse.json({ success: false, error: error.message }, { status: 500 })
     }
 
+    // Log all user_ids
+    console.log('List API - all user_ids:', allImages?.map(i => i.user_id))
+
     // Filter by user_id as strings
     const userImages = (allImages || []).filter(img => String(img.user_id) === String(userIdFromHeader))
+    console.log('List API - filtered images:', userImages.length)
     
     const formattedImages = userImages.map((img: any) => ({
       id: img.id,
