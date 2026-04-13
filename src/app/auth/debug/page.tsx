@@ -2,8 +2,9 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useSearchParams } from 'next/navigation'
+import { Suspense } from 'react'
 
-export default function AuthDebugPage() {
+function AuthDebugContent() {
   const searchParams = useSearchParams()
   const code = searchParams.get('code')
   const error = searchParams.get('error')
@@ -17,9 +18,17 @@ export default function AuthDebugPage() {
           code: code ? 'present' : 'none',
           error,
           errorDescription,
-          fullUrl: window.location.href
+          fullUrl: typeof window !== 'undefined' ? window.location.href : 'server'
         }, null, 2)}
       </pre>
     </div>
+  )
+}
+
+export default function AuthDebugPage() {
+  return (
+    <Suspense fallback={<div className="p-8">Loading...</div>}>
+      <AuthDebugContent />
+    </Suspense>
   )
 }
