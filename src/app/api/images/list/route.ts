@@ -41,9 +41,6 @@ export async function GET(request: NextRequest) {
       .from('image_generations')
       .select('*')
       .eq('user_id', userIdFromHeader)
-      .from('image_generations')
-      .select('*')
-      .eq('user_id', userIdFromHeader)
       .order('created_at', { ascending: false })
 
     console.log('List API - found images:', images?.length || 0)
