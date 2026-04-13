@@ -6,9 +6,6 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const userIdFromHeader = request.headers.get('x-user-id')
-    console.log('=== List API called ===')
-    console.log('userId from header:', userIdFromHeader)
-    console.log('userId length:', userIdFromHeader?.length)
 
     if (!userIdFromHeader) {
       return NextResponse.json({ success: true, images: [], reason: 'no user' })
@@ -19,23 +16,12 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    // Get all user_ids
-    const { data: allRecords } = await supabase
-      .from('image_generations')
-      .select('user_id, id')
-    console.log('All records:', allRecords)
-    
-    // Check if user_id exists in records
-    const matchingRecords = allRecords?.filter(r => r.user_id === userIdFromHeader)
-    console.log('Matching records:', matchingRecords?.length)
-    
-    const { data: images, error } = await supabase
+    // Use text-based comparison to workaround UUID matching issues
+    const { data: allImages, error } = await supabase
       .from('image_generations')
       .select('*')
-      .eq('user_id', userIdFromHeader)
       .order('created_at', { ascending: false })
-
-    console.log('Query result:', { count: images?.length, error })
+      .limit(1000)
 
     if (error) {
       console.error('Error:', error)
@@ -45,7 +31,10 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const formattedImages = images.map((img) => ({
+    // Convert to string and compare to avoid UUID type mismatch
+    const userImages = allImages?.filter(img => String(img.user_id) === String(userIdFromHeader)) || []
+
+    const formattedImages = userImages.map((img) => ({
       id: img.id,
       prompt: img.prompt,
       aspectRatio: img.aspect_ratio,
@@ -55,8 +44,6 @@ export async function GET(request: NextRequest) {
       alt: img.prompt,
       createdAt: new Date(img.created_at).getTime(),
     }))
-
-    console.log('Returning images:', formattedImages.length)
 
     return NextResponse.json({ success: true, images: formattedImages })
   } catch (error) {
