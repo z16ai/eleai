@@ -284,10 +284,11 @@ const processingRef = useRef(false)
 
   // Load image index from server on mount
   useEffect(() => {
+    let mounted = true
+    
     async function loadImages() {
       if (authLoading || !user) {
-        if (!user) {
-          console.log('No user, clearing images')
+        if (!user && mounted) {
           setImages([])
         }
         setIsLoading(false)
@@ -299,6 +300,8 @@ const processingRef = useRef(false)
         headers: { 'x-user-id': user.id },
       })
       const data = await response.json()
+      
+      if (!mounted) return
       
       if (data.success) {
         console.log('Loaded images count:', data.images?.length)
@@ -315,14 +318,16 @@ const processingRef = useRef(false)
           loadedImages.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
           setImages(loadedImages)
         }
-      } catch (error) {
-        console.error('Failed to load images:', error)
-      } finally {
-        setIsLoading(false)
+      } else {
+        console.error('Failed to load images:', data.error)
       }
     }
 
     loadImages()
+    
+    return () => {
+      mounted = false
+    }
   }, [user, authLoading])
 
   const getAspectClass = (ratio: string) => {
