@@ -6,27 +6,21 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const userIdFromHeader = request.headers.get('x-user-id')
-    console.log('List API - userId from header:', userIdFromHeader)
 
     if (!userIdFromHeader) {
       return NextResponse.json({ success: true, images: [], reason: 'no user' })
     }
 
-    // Use service role key to bypass RLS
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
-
-    console.log('List API - querying database for user_id:', userIdFromHeader)
 
     const { data: images, error } = await supabase
       .from('image_generations')
       .select('*')
       .eq('user_id', userIdFromHeader)
       .order('created_at', { ascending: false })
-
-    console.log('List API - found images:', images?.length || 0)
 
     if (error) {
       console.error('Failed to list images:', error)
