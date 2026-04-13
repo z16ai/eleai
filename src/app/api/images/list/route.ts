@@ -26,7 +26,12 @@ export async function GET(request: NextRequest) {
       .limit(5)
     console.log('Sample user_ids in DB:', sampleUsers)
     
-    // Try exact match
+    // Debug: check all unique user_ids
+    const { data: allUserIds } = await supabase
+      .from('image_generations')
+      .select('user_id')
+    console.log('All unique user_ids:', [...new Set(allUserIds?.map(x => x.user_id))])
+    
     const { data: images, error } = await supabase
       .from('image_generations')
       .select('*')
