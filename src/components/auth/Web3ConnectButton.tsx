@@ -115,7 +115,7 @@ export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectBut
           provider: 'web3',
           options: {
             chain: wallet.chain,
-            statement: 'I accept the Terms of Service at https://eleai.studio/tos'
+            statement: `I accept the Terms of Service at ${window.location.origin}/tos`
           }
         })
         console.log('Link Web3 result:', { data, error })
@@ -128,7 +128,7 @@ export default function Web3ConnectButton({ isLoggedIn = false }: Web3ConnectBut
         // Sign in with Web3
         const { data, error } = await supabase.auth.signInWithWeb3({
           chain: wallet.chain as 'ethereum',
-          statement: 'I accept the Terms of Service at https://eleai.studio/tos'
+          statement: `I accept the Terms of Service at ${window.location.origin}/tos`
         })
         console.log('Web3 login result:', { data, error })
         if (error) {
