@@ -306,18 +306,17 @@ const processingRef = useRef(false)
       if (data.success) {
         console.log('Loaded images count:', data.images?.length)
         const loadedImages: GeneratedImage[] = (data.images || []).map((img: any) => ({
-            id: img.id,
-            prompt: img.prompt,
-            aspectRatio: img.aspectRatio,
-            quality: img.quality,
-            modelName: img.modelName,
-            src: img.src,
-            alt: img.alt,
-            createdAt: img.createdAt,
-          }))
-          loadedImages.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
-          setImages(loadedImages)
-        }
+          id: img.id,
+          prompt: img.prompt,
+          aspectRatio: img.aspectRatio,
+          quality: img.quality,
+          modelName: img.modelName,
+          src: img.src,
+          alt: img.alt,
+          createdAt: img.createdAt,
+        }))
+        loadedImages.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0))
+        setImages(loadedImages)
       } else {
         console.error('Failed to load images:', data.error)
       }
