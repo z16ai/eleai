@@ -19,7 +19,15 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    console.log('List API - querying for user:', userIdFromHeader)
+    console.log('List API - querying database for user_id:', userIdFromHeader)
+
+    // First check what user IDs exist in the database
+    const { data: allUsers, error: debugError } = await supabase
+      .from('image_generations')
+      .select('user_id')
+      .limit(10)
+    
+    console.log('List API - sample user_ids in DB:', allUsers?.map(x => x.user_id))
 
     const { data: images, error } = await supabase
       .from('image_generations')
