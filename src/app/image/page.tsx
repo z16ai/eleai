@@ -286,20 +286,23 @@ const processingRef = useRef(false)
   useEffect(() => {
     async function loadImages() {
       if (authLoading || !user) {
-        if (!user) setImages([])
+        if (!user) {
+          console.log('No user, clearing images')
+          setImages([])
+        }
         setIsLoading(false)
         return
       }
 
-      try {
-        console.log('Loading images for user:', user.id)
-        const response = await fetch('/api/images/list', {
-          headers: { 'x-user-id': user.id },
-        })
-        const data = await response.json()
-        
-        if (data.success) {
-          const loadedImages: GeneratedImage[] = (data.images || []).map((img: any) => ({
+      console.log('Loading images for user:', user.id)
+      const response = await fetch('/api/images/list', {
+        headers: { 'x-user-id': user.id },
+      })
+      const data = await response.json()
+      
+      if (data.success) {
+        console.log('Loaded images count:', data.images?.length)
+        const loadedImages: GeneratedImage[] = (data.images || []).map((img: any) => ({
             id: img.id,
             prompt: img.prompt,
             aspectRatio: img.aspectRatio,
