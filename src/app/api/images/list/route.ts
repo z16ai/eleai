@@ -29,6 +29,14 @@ export async function GET(request: NextRequest) {
     
     console.log('List API - sample user_ids in DB:', allUsers?.map(x => x.user_id))
 
+    // Check specifically for this user
+    const { data: debugImages, error: debugError2 } = await supabase
+      .from('image_generations')
+      .select('*')
+      .eq('user_id', userIdFromHeader)
+    
+    console.log('List API - debug query result:', { count: debugImages?.length, data: debugImages, error: debugError2 })
+
     const { data: images, error } = await supabase
       .from('image_generations')
       .select('*')
