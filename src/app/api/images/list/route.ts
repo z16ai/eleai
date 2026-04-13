@@ -32,12 +32,15 @@ export async function GET(request: NextRequest) {
     // Check specifically for this user
     const { data: debugImages, error: debugError2 } = await supabase
       .from('image_generations')
-      .select('*')
+      .select('id, user_id, created_at')
       .eq('user_id', userIdFromHeader)
     
-    console.log('List API - debug query result:', { count: debugImages?.length, data: debugImages, error: debugError2 })
+    console.log('List API - debug query result:', { count: debugImages?.length, records: debugImages, error: debugError2 })
 
     const { data: images, error } = await supabase
+      .from('image_generations')
+      .select('*')
+      .eq('user_id', userIdFromHeader)
       .from('image_generations')
       .select('*')
       .eq('user_id', userIdFromHeader)
