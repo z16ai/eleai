@@ -19,18 +19,15 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    // Check what user_ids exist in DB
-    const { data: sampleUsers } = await supabase
+    // Get all user_ids
+    const { data: allRecords } = await supabase
       .from('image_generations')
-      .select('user_id')
-      .limit(5)
-    console.log('Sample user_ids in DB:', sampleUsers)
+      .select('user_id, id')
+    console.log('All records:', allRecords)
     
-    // Debug: check all unique user_ids
-    const { data: allUserIds } = await supabase
-      .from('image_generations')
-      .select('user_id')
-    console.log('All unique user_ids:', [...new Set(allUserIds?.map(x => x.user_id))])
+    // Check if user_id exists in records
+    const matchingRecords = allRecords?.filter(r => r.user_id === userIdFromHeader)
+    console.log('Matching records:', matchingRecords?.length)
     
     const { data: images, error } = await supabase
       .from('image_generations')
