@@ -8,6 +8,7 @@ export async function GET(request: NextRequest) {
     const userIdFromHeader = request.headers.get('x-user-id')
     console.log('=== List API called ===')
     console.log('userId from header:', userIdFromHeader)
+    console.log('userId length:', userIdFromHeader?.length)
 
     if (!userIdFromHeader) {
       return NextResponse.json({ success: true, images: [], reason: 'no user' })
@@ -18,14 +19,14 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    // Test query first
-    const { data: testData, error: testError } = await supabase
+    // Check what user_ids exist in DB
+    const { data: sampleUsers } = await supabase
       .from('image_generations')
-      .select('id')
-      .limit(1)
+      .select('user_id')
+      .limit(5)
+    console.log('Sample user_ids in DB:', sampleUsers)
     
-    console.log('Test query result:', { count: testData?.length, error: testError })
-
+    // Try exact match
     const { data: images, error } = await supabase
       .from('image_generations')
       .select('*')
