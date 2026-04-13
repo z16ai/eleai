@@ -57,10 +57,26 @@ export default function TopNav() {
         const lastNotified = localStorage.getItem('eleai-daily-points-notified')
         const shouldNotify = lastNotified !== today && lastReset !== today
 
-        if (shouldNotify) {
-          setToastMessage('Daily 88 points credited')
-          setTimeout(() => setToastMessage(null), 3000)
-          localStorage.setItem('eleai-daily-points-notified', today)
+        if (shouldNotify && user) {
+          // Call the database function to reset daily points
+          // This matches what the production cron job does
+          const { error: resetError } = await supabase.rpc('reset_daily_points')
+
+          if (!resetError) {
+            // After reset, fetch the updated points
+            const { data: updatedData } = await supabase
+              .from('user_points')
+              .select('points, last_reset_date')
+              .eq('user_id', user.id)
+              .single()
+
+            if (updatedData) {
+              setPoints(updatedData.points)
+              setToastMessage('Daily 88 points credited')
+              setTimeout(() => setToastMessage(null), 3000)
+              localStorage.setItem('eleai-daily-points-notified', today)
+            }
+          }
         }
       } else {
         const { error: insertError } = await supabase
