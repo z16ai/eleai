@@ -6,9 +6,11 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const userIdFromHeader = request.headers.get('x-user-id')
-    console.log('List API - userId:', userIdFromHeader)
+    console.log('List API - userId from header:', userIdFromHeader)
+    console.log('List API - full URL:', request.url)
 
     if (!userIdFromHeader) {
+      console.log('List API - no user id in header')
       return NextResponse.json({ success: true, images: [], reason: 'no user' })
     }
 

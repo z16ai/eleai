@@ -292,6 +292,7 @@ const processingRef = useRef(false)
       }
 
       try {
+        console.log('Loading images for user:', user.id)
         const response = await fetch('/api/images/list', {
           headers: { 'x-user-id': user.id },
         })
