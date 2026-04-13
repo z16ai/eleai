@@ -6,6 +6,8 @@ export const dynamic = 'force-dynamic'
 export async function GET(request: NextRequest) {
   try {
     const userIdFromHeader = request.headers.get('x-user-id')
+    console.log('=== List API called ===')
+    console.log('userId from header:', userIdFromHeader)
 
     if (!userIdFromHeader) {
       return NextResponse.json({ success: true, images: [], reason: 'no user' })
@@ -16,14 +18,24 @@ export async function GET(request: NextRequest) {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
+    // Test query first
+    const { data: testData, error: testError } = await supabase
+      .from('image_generations')
+      .select('id')
+      .limit(1)
+    
+    console.log('Test query result:', { count: testData?.length, error: testError })
+
     const { data: images, error } = await supabase
       .from('image_generations')
       .select('*')
       .eq('user_id', userIdFromHeader)
       .order('created_at', { ascending: false })
 
+    console.log('Query result:', { count: images?.length, error })
+
     if (error) {
-      console.error('Failed to list images:', error)
+      console.error('Error:', error)
       return NextResponse.json(
         { success: false, error: error.message },
         { status: 500 }
@@ -41,9 +53,11 @@ export async function GET(request: NextRequest) {
       createdAt: new Date(img.created_at).getTime(),
     }))
 
+    console.log('Returning images:', formattedImages.length)
+
     return NextResponse.json({ success: true, images: formattedImages })
   } catch (error) {
-    console.error('Failed to list images:', error)
+    console.error('Exception:', error)
     return NextResponse.json(
       { success: false, error: (error as Error).message },
       { status: 500 }
